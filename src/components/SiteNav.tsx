@@ -2,12 +2,17 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 
-const navLinks = [
+const routedLinks = [
   { label: "Home", to: "/" as const },
   { label: "Book a Service", to: "/book" as const },
-  { label: "Admin Login", to: "/admin-login" as const },
-  { label: "Technician Login", to: "/technician-login" as const },
 ];
+const pendingLinks = [
+  { label: "Admin Login", href: "/admin-login" },
+  { label: "Technician Login", href: "/technician-login" },
+];
+
+const linkClass =
+  "text-xs uppercase tracking-[0.16em] text-primary-foreground/75 transition-colors hover:text-brass";
 
 export function SiteNav({ solid = false }: { solid?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -25,16 +30,23 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
         </Link>
 
         <ul className="hidden items-center gap-9 md:flex">
-          {navLinks.map((link) => (
+          {routedLinks.map((link) => (
             <li key={link.label}>
               <Link
                 to={link.to}
-                className="text-xs uppercase tracking-[0.16em] text-primary-foreground/75 transition-colors hover:text-brass"
+                className={linkClass}
                 activeProps={{ className: "text-brass" }}
                 activeOptions={{ exact: true }}
               >
                 {link.label}
               </Link>
+            </li>
+          ))}
+          {pendingLinks.map((link) => (
+            <li key={link.label}>
+              <a href={link.href} className={linkClass}>
+                {link.label}
+              </a>
             </li>
           ))}
         </ul>
@@ -51,15 +63,18 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
 
       {open && (
         <ul className="surface-navy mx-6 mb-4 space-y-4 rounded-sm border border-brass/25 p-6 md:hidden">
-          {navLinks.map((link) => (
+          {routedLinks.map((link) => (
             <li key={link.label}>
-              <Link
-                to={link.to}
-                onClick={() => setOpen(false)}
-                className="block text-xs uppercase tracking-[0.16em] text-primary-foreground/80"
-              >
+              <Link to={link.to} onClick={() => setOpen(false)} className={linkClass}>
                 {link.label}
               </Link>
+            </li>
+          ))}
+          {pendingLinks.map((link) => (
+            <li key={link.label}>
+              <a href={link.href} className={linkClass}>
+                {link.label}
+              </a>
             </li>
           ))}
         </ul>
