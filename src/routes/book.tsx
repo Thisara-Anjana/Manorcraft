@@ -116,9 +116,9 @@ function Field({
   htmlFor,
 }: {
   label: string;
-  error?: string;
+  error?: string | undefined;
   children: React.ReactNode;
-  htmlFor?: string;
+  htmlFor?: string | undefined;
 }) {
   return (
     <div className="space-y-2">
@@ -143,7 +143,8 @@ function BookPage() {
   };
 
   const validateStep = () => {
-    const result = stepSchemas[step].safeParse(form as never);
+    const schema = stepSchemas[step]!;
+    const result = schema.safeParse(form as never);
     if (result.success) {
       setErrors({});
       return true;
@@ -252,7 +253,7 @@ function BookPage() {
             <div className="space-y-6 p-8 sm:p-10">
               {step === 0 && (
                 <>
-                  <Field label="Service category" error={errors.service}>
+                  <Field label="Service category" error={errors['service']}>
                     <Select value={form.service} onValueChange={(v) => set("service", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select a service" />
@@ -267,7 +268,7 @@ function BookPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Describe the issue" error={errors.issue} htmlFor="issue">
+                  <Field label="Describe the issue" error={errors['issue']} htmlFor="issue">
                     <Textarea
                       id="issue"
                       rows={5}
@@ -282,7 +283,7 @@ function BookPage() {
 
               {step === 1 && (
                 <>
-                  <Field label="District" error={errors.district}>
+                  <Field label="District" error={errors['district']}>
                     <Select value={form.district} onValueChange={(v) => set("district", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select your district" />
@@ -297,7 +298,7 @@ function BookPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Full address" error={errors.address} htmlFor="address">
+                  <Field label="Full address" error={errors['address']} htmlFor="address">
                     <Input
                       id="address"
                       maxLength={200}
@@ -312,7 +313,7 @@ function BookPage() {
 
               {step === 2 && (
                 <>
-                  <Field label="Preferred date" error={errors.date}>
+                  <Field label="Preferred date" error={errors['date']}>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -339,7 +340,7 @@ function BookPage() {
                     </Popover>
                   </Field>
 
-                  <Field label="Preferred time slot" error={errors.slot}>
+                  <Field label="Preferred time slot" error={errors['slot']}>
                     <Select value={form.slot} onValueChange={(v) => set("slot", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select a time slot" />
