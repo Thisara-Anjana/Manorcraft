@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Menu, X, Droplets, Zap, Hammer, Wind, ShieldCheck, Star } from "lucide-react";
+import { Droplets, Zap, Hammer, Wind, ShieldCheck, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-manor.jpg";
+import { SiteNav } from "@/components/SiteNav";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,12 +25,6 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Book a Service", href: "/book" },
-  { label: "Admin Login", href: "/admin-login" },
-  { label: "Technician Login", href: "/technician-login" },
-];
 
 const services = [
   {
@@ -54,62 +48,6 @@ const services = [
     description: "Servicing, gas refills and installations that keep every room perfectly cool.",
   },
 ];
-
-function Navbar() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <header className="absolute inset-x-0 top-0 z-30">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-        <a href="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-brass/70">
-            <span className="font-display text-lg text-brass">M</span>
-          </span>
-          <span className="font-display text-2xl tracking-[0.18em] text-primary-foreground uppercase">
-            Manorcraft
-          </span>
-        </a>
-
-        <ul className="hidden items-center gap-9 md:flex">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <a
-                href={link.href}
-                className="text-xs uppercase tracking-[0.16em] text-primary-foreground/75 transition-colors hover:text-brass"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <button
-          type="button"
-          aria-label="Toggle navigation"
-          onClick={() => setOpen((v) => !v)}
-          className="text-primary-foreground md:hidden"
-        >
-          {open ? <X /> : <Menu />}
-        </button>
-      </nav>
-
-      {open && (
-        <ul className="surface-navy mx-6 mb-4 space-y-4 rounded-sm border border-brass/25 p-6 md:hidden">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <a
-                href={link.href}
-                className="block text-xs uppercase tracking-[0.16em] text-primary-foreground/80"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </header>
-  );
-}
 
 function Hero() {
   return (
@@ -187,7 +125,7 @@ function Services() {
 function Landing() {
   return (
     <main>
-      <Navbar />
+      <SiteNav />
       <Hero />
       <Services />
       <footer className="surface-navy py-10">
