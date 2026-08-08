@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Droplets, Zap, Hammer, Wind, ShieldCheck, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-manor.jpg";
@@ -74,7 +74,7 @@ function Hero() {
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Button asChild variant="brass" size="xl">
-            <a href="/book">Book Now</a>
+            <Link to="/book">Book Now</Link>
           </Button>
           <Button asChild variant="outlineBrass" size="xl">
             <a href="#services">Our Services</a>
