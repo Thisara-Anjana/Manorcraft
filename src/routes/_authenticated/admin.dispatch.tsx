@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TicketHistory } from "@/components/TicketHistory";
 import { assignTechnician, listTechnicians, listTickets } from "@/lib/dispatch.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/dispatch")({
@@ -55,6 +56,7 @@ function DispatchBoard() {
   const assign = useServerFn(assignTechnician);
   const queryClient = useQueryClient();
   const [activeTicket, setActiveTicket] = useState<string | null>(null);
+  const [historyTicket, setHistoryTicket] = useState<string | null>(null);
 
   const tickets = useQuery({ queryKey: ["tickets"], queryFn: () => fetchTickets({}) });
   const techs = useQuery({
@@ -124,14 +126,23 @@ function DispatchBoard() {
                         <Badge className={statusStyles[t.job_status] ?? ""}>{t.job_status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outlineBrass"
-                          disabled={t.job_status === "Completed"}
-                          onClick={() => setActiveTicket(t.ticket_id)}
-                        >
-                          Assign Tech
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setHistoryTicket(t.ticket_id)}
+                          >
+                            History
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outlineBrass"
+                            disabled={t.job_status === "Completed"}
+                            onClick={() => setActiveTicket(t.ticket_id)}
+                          >
+                            Assign Tech
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -189,6 +200,18 @@ function DispatchBoard() {
               No technicians on record yet. Add technicians to start dispatching.
             </p>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!historyTicket} onOpenChange={(open) => !open && setHistoryTicket(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">Status history</DialogTitle>
+            <DialogDescription>
+              Every recorded status change for ticket {historyTicket?.slice(0, 8).toUpperCase()}.
+            </DialogDescription>
+          </DialogHeader>
+          {historyTicket && <TicketHistory ticketId={historyTicket} />}
         </DialogContent>
       </Dialog>
     </div>
