@@ -1,5 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, Settings, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  Settings,
+  ShieldCheck,
+  Map as MapIcon,
+} from "lucide-react";
 
 import { useBrandLogo } from "@/hooks/useBrandLogo";
 
@@ -18,6 +25,7 @@ import {
 const items = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },
   { title: "Dispatch Board", url: "/admin/dispatch", icon: ClipboardList },
+  { title: "Map View", url: "/admin/map", icon: MapIcon },
   { title: "Technicians", url: "/admin/technicians", icon: Users },
   { title: "Admins", url: "/admin/admins", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
