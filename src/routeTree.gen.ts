@@ -20,6 +20,7 @@ import { Route as AuthenticatedTechnicianRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as AuthenticatedAdminDispatchRouteImport } from './routes/_authenticated/admin.dispatch'
+import { Route as AuthenticatedAdminMapRouteImport } from './routes/_authenticated/admin.map'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminTechniciansRouteImport } from './routes/_authenticated/admin.technicians'
 
@@ -79,6 +80,11 @@ const AuthenticatedAdminDispatchRoute =
     path: '/dispatch',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMapRoute = AuthenticatedAdminMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/admin/map': typeof AuthenticatedAdminMapRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/admin/map': typeof AuthenticatedAdminMapRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_authenticated/technician': typeof AuthenticatedTechnicianRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/_authenticated/admin/map': typeof AuthenticatedAdminMapRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/technician'
     | '/admin/admins'
     | '/admin/dispatch'
+    | '/admin/map'
     | '/admin/settings'
     | '/admin/technicians'
     | '/admin/'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/technician'
     | '/admin/admins'
     | '/admin/dispatch'
+    | '/admin/map'
     | '/admin/settings'
     | '/admin/technicians'
     | '/admin'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/technician'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/dispatch'
+    | '/_authenticated/admin/map'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/technicians'
     | '/_authenticated/admin/'
@@ -266,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDispatchRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/map': {
+      id: '/_authenticated/admin/map'
+      path: '/map'
+      fullPath: '/admin/map'
+      preLoaderRoute: typeof AuthenticatedAdminMapRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
       path: '/settings'
@@ -286,6 +305,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdminsRoute: typeof AuthenticatedAdminAdminsRoute
   AuthenticatedAdminDispatchRoute: typeof AuthenticatedAdminDispatchRoute
+  AuthenticatedAdminMapRoute: typeof AuthenticatedAdminMapRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTechniciansRoute: typeof AuthenticatedAdminTechniciansRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -294,6 +314,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdminsRoute: AuthenticatedAdminAdminsRoute,
   AuthenticatedAdminDispatchRoute: AuthenticatedAdminDispatchRoute,
+  AuthenticatedAdminMapRoute: AuthenticatedAdminMapRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTechniciansRoute: AuthenticatedAdminTechniciansRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,

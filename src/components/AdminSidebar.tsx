@@ -1,5 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, Settings, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  Settings,
+  ShieldCheck,
+  Map as MapIcon,
+} from "lucide-react";
 
 import { useBrandLogo } from "@/hooks/useBrandLogo";
 
