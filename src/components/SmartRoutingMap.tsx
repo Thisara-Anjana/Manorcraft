@@ -56,7 +56,7 @@ function distance(a: [number, number], b: [number, number]) {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
 
-/** Nearest-neighbour ordering, starting from the stop closest to Colombo. */
+/** Nearest-neighbour ordering, used as a fallback when OSRM is unavailable. */
 function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[] {
   if (stops.length < 2) return stops;
   const remaining = [...stops];
@@ -80,6 +80,55 @@ function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[
   }
   return ordered;
 }
+
+type OsrmTrip = {
+  order: number[];
+  geometry: [number, number][];
+  distanceKm: number;
+  durationMin: number;
+};
+
+/** Ask OSRM for a street-level optimised trip. Index 0 of `positions` is the depot. */
+async function fetchOsrmTrip(positions: [number, number][]): Promise<OsrmTrip> {
+  const coords = positions.map(([lat, lon]) => `${lon},${lat}`).join(";");
+  const url = `https://router.project-osrm.org/trip/v1/driving/${coords}?roundtrip=false&source=first&overview=full&geometries=geojson`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
+  const json = (await res.json()) as {
+    code: string;
+    trips?: {
+      distance: number;
+      duration: number;
+      geometry: { coordinates: [number, number][] };
+    }[];
+    waypoints?: { waypoint_index: number }[];
+  };
+  const trip = json.trips?.[0];
+  if (json.code !== "Ok" || !trip) throw new Error("OSRM could not compute a route");
+
+  // waypoints[i].waypoint_index = position of input i in the optimised order.
+  const waypoints = json.waypoints ?? [];
+  const order = waypoints
+    .map((w, inputIndex) => ({ inputIndex, at: w.waypoint_index }))
+    .filter((w) => w.inputIndex > 0) // drop the depot
+    .sort((a, b) => a.at - b.at)
+    .map((w) => w.inputIndex - 1); // back to stop indices
+
+  return {
+    order,
+    geometry: trip.geometry.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]),
+    distanceKm: trip.distance / 1000,
+    durationMin: trip.duration / 60,
+  };
+}
+
+function formatDuration(minutes: number) {
+  const total = Math.round(minutes);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h > 0 ? `${h} hr ${m} min` : `${m} min`;
+}
+
 
 function markerIcon(status: string, label?: number) {
   const gold = "#c9a227";
@@ -136,13 +185,33 @@ export default function SmartRoutingMap() {
     [points, selectedTech],
   );
 
-  const route = useMemo(
-    () => (selectedTech === "all" ? [] : optimiseRoute(visible)),
-    [selectedTech, visible],
-  );
+  const depot: [number, number] = DISTRICT_COORDS["colombo"] ?? SRI_LANKA_CENTER;
 
-  const routeLine = route.map((stop) => stop.position);
+  const osrmKey = visible.map((p) => `${p.position[0].toFixed(5)},${p.position[1].toFixed(5)}`);
+
+  const tripQuery = useQuery({
+    queryKey: ["admin", "osrm-trip", selectedTech, osrmKey],
+    queryFn: () => fetchOsrmTrip([depot, ...visible.map((p) => p.position)]),
+    enabled: selectedTech !== "all" && visible.length > 0,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const route = useMemo(() => {
+    if (selectedTech === "all") return [];
+    const order = tripQuery.data?.order;
+    if (order && order.length === visible.length) {
+      return order.map((i) => visible[i]!).filter(Boolean);
+    }
+    return optimiseRoute(visible);
+  }, [selectedTech, visible, tripQuery.data]);
+
+  const routeLine =
+    tripQuery.data && selectedTech !== "all"
+      ? tripQuery.data.geometry
+      : route.map((stop) => stop.position);
   const numbering = new Map(route.map((stop, i) => [stop.ticket.ticket_id, i + 1]));
+
 
   if (ticketsQuery.isLoading) {
     return <Skeleton className="h-[70vh] w-full rounded-xl" />;
@@ -161,9 +230,15 @@ export default function SmartRoutingMap() {
               {routeLine.length > 1 && (
                 <Polyline
                   positions={routeLine}
-                  pathOptions={{ color: "#c9a227", weight: 4, opacity: 0.85, dashArray: "8 10" }}
+                  pathOptions={{
+                    color: "#c9a227",
+                    weight: tripQuery.data ? 5 : 4,
+                    opacity: 0.9,
+                    ...(tripQuery.data ? {} : { dashArray: "8 10" }),
+                  }}
                 />
               )}
+
               {visible.map(({ ticket, position }) => (
                 <Marker
                   key={ticket.ticket_id}
@@ -248,35 +323,68 @@ export default function SmartRoutingMap() {
               No open jobs assigned to this technician yet.
             </p>
           ) : (
-            <ol className="space-y-3">
-              {route.map((stop, index) => (
-                <li
-                  key={stop.ticket.ticket_id}
-                  className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
-                >
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
-                    {index + 1}
-                  </span>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{stop.ticket.job_category}</p>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" /> {stop.ticket.district} &middot;{" "}
-                      {stop.ticket.customer_name}
+            <>
+              {tripQuery.isFetching ? (
+                <Skeleton className="h-16 w-full rounded-lg" />
+              ) : tripQuery.data ? (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-brass/40 bg-primary/5 p-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      Driving distance
                     </p>
-                    <Badge variant="outline" className="border-brass/50 text-[10px]">
-                      {stop.ticket.job_status}
-                    </Badge>
+                    <p className="font-display text-xl text-primary">
+                      {tripQuery.data.distanceKm.toFixed(1)} km
+                    </p>
                   </div>
-                </li>
-              ))}
-            </ol>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      Estimated time
+                    </p>
+                    <p className="font-display text-xl text-primary">
+                      {formatDuration(tripQuery.data.durationMin)}
+                    </p>
+                  </div>
+                </div>
+              ) : tripQuery.isError ? (
+                <p className="rounded-lg border border-border/60 p-3 text-xs text-muted-foreground">
+                  Live road routing is unavailable right now — showing an estimated sequence
+                  instead.
+                </p>
+              ) : null}
+              <ol className="space-y-3">
+                {route.map((stop, index) => (
+                  <li
+                    key={stop.ticket.ticket_id}
+                    className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
+                      {index + 1}
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{stop.ticket.job_category}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {stop.ticket.district} &middot;{" "}
+                        {stop.ticket.customer_name}
+                      </p>
+                      <Badge variant="outline" className="border-brass/50 text-[10px]">
+                        {stop.ticket.job_status}
+                      </Badge>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </>
           )}
+
           {selectedTech !== "all" && route.length > 1 && (
             <p className="text-xs text-muted-foreground">
-              Route optimised with nearest-neighbour sequencing from Colombo for{" "}
+              {tripQuery.data
+                ? "Street-level driving route optimised by OSRM, starting from Colombo for "
+                : "Estimated sequencing from Colombo for "}
               {techName(selectedTech) ?? "this technician"}.
             </p>
           )}
+
           <Button
             variant="outline"
             className="w-full"
