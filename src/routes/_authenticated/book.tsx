@@ -139,6 +139,8 @@ function BookPage() {
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState(false);
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -165,13 +167,47 @@ function BookPage() {
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!validateStep()) return;
+    setSubmitting(true);
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setSubmitting(false);
+      toast.error("Please sign in again to complete your booking.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("job_tickets")
+      .insert({
+        customer_id: userId,
+        district: form.district,
+        address: form.address.trim(),
+        job_category: form.service as "Plumbing" | "Electrical" | "Masonry" | "AC Repair",
+        job_status: "Pending",
+        description: form.issue.trim(),
+        scheduled_date: form.date ? format(form.date, "yyyy-MM-dd") : null,
+        time_slot: form.slot,
+      })
+      .select("ticket_id")
+      .single();
+
+    setSubmitting(false);
+
+    if (error) {
+      toast.error("Could not create your booking", { description: error.message });
+      return;
+    }
+
+    setTicketId(data.ticket_id);
     setConfirmed(true);
     toast.success("Booking confirmed", {
-      description: `A Manorcraft technician will contact you shortly.`,
+      description: "A Manorcraft technician will contact you shortly.",
     });
   };
+
 
   return (
     <div className="min-h-screen bg-secondary/40">
