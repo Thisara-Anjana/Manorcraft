@@ -7,9 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 const routedLinks = [
   { label: "Home", to: "/" as const },
   { label: "Book a Service", to: "/book" as const },
+  { label: "My Bookings", to: "/dashboard" as const },
   { label: "Admin", to: "/admin" as const },
-  { label: "Technician", to: "/technician-login" as const },
+  { label: "Technician", to: "/technician" as const },
 ];
+
 
 const linkClass =
   "text-xs uppercase tracking-[0.16em] text-primary-foreground/75 transition-colors hover:text-brass";
