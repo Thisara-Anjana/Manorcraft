@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/book")({
+export const Route = createFileRoute("/_authenticated/book")({
   head: () => ({
     meta: [
       { title: "Book a Service | Manorcraft" },
