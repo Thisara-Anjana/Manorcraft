@@ -129,3 +129,43 @@ export const assignTechnician = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+export const listMapTickets = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { data, error } = await context.supabase
+      .from("job_tickets")
+      .select(
+        "ticket_id, customer_id, district, address, job_category, job_status, description, technician_id, scheduled_date, time_slot, latitude, longitude",
+      )
+      .in("job_status", ["Pending", "Assigned"])
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const tickets = data ?? [];
+    let names = new Map<string, string>();
+    if (tickets.length > 0) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: customers } = await supabaseAdmin
+        .from("customers")
+        .select("customer_id, full_name")
+        .in("customer_id", [...new Set(tickets.map((t) => t.customer_id))]);
+      names = new Map((customers ?? []).map((c) => [c.customer_id, c.full_name]));
+    }
+
+    return tickets.map((t) => ({
+      ticket_id: t.ticket_id as string,
+      customer_name: names.get(t.customer_id) ?? "Manorcraft client",
+      district: t.district as string,
+      address: (t.address as string | null) ?? null,
+      job_category: t.job_category as string,
+      job_status: t.job_status as string,
+      description: t.description as string,
+      technician_id: (t.technician_id as string | null) ?? null,
+      scheduled_date: (t.scheduled_date as string | null) ?? null,
+      time_slot: (t.time_slot as string | null) ?? null,
+      latitude: (t.latitude as number | null) ?? null,
+      longitude: (t.longitude as number | null) ?? null,
+    }));
+  });
