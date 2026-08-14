@@ -185,13 +185,33 @@ export default function SmartRoutingMap() {
     [points, selectedTech],
   );
 
-  const route = useMemo(
-    () => (selectedTech === "all" ? [] : optimiseRoute(visible)),
-    [selectedTech, visible],
-  );
+  const depot: [number, number] = DISTRICT_COORDS["colombo"] ?? SRI_LANKA_CENTER;
 
-  const routeLine = route.map((stop) => stop.position);
+  const osrmKey = visible.map((p) => `${p.position[0].toFixed(5)},${p.position[1].toFixed(5)}`);
+
+  const tripQuery = useQuery({
+    queryKey: ["admin", "osrm-trip", selectedTech, osrmKey],
+    queryFn: () => fetchOsrmTrip([depot, ...visible.map((p) => p.position)]),
+    enabled: selectedTech !== "all" && visible.length > 0,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const route = useMemo(() => {
+    if (selectedTech === "all") return [];
+    const order = tripQuery.data?.order;
+    if (order && order.length === visible.length) {
+      return order.map((i) => visible[i]!).filter(Boolean);
+    }
+    return optimiseRoute(visible);
+  }, [selectedTech, visible, tripQuery.data]);
+
+  const routeLine =
+    tripQuery.data && selectedTech !== "all"
+      ? tripQuery.data.geometry
+      : route.map((stop) => stop.position);
   const numbering = new Map(route.map((stop, i) => [stop.ticket.ticket_id, i + 1]));
+
 
   if (ticketsQuery.isLoading) {
     return <Skeleton className="h-[70vh] w-full rounded-xl" />;
