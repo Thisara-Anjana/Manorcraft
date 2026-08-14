@@ -38,6 +38,24 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_settings: {
+        Row: {
+          id: boolean
+          logo_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          logo_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          logo_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
