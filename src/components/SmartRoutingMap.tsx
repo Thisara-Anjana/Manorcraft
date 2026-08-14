@@ -352,26 +352,30 @@ export default function SmartRoutingMap() {
                 </p>
               ) : null}
               <ol className="space-y-3">
-
-                  className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
-                >
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
-                    {index + 1}
-                  </span>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{stop.ticket.job_category}</p>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="h-3 w-3" /> {stop.ticket.district} &middot;{" "}
-                      {stop.ticket.customer_name}
-                    </p>
-                    <Badge variant="outline" className="border-brass/50 text-[10px]">
-                      {stop.ticket.job_status}
-                    </Badge>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                {route.map((stop, index) => (
+                  <li
+                    key={stop.ticket.ticket_id}
+                    className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
+                  >
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
+                      {index + 1}
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{stop.ticket.job_category}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" /> {stop.ticket.district} &middot;{" "}
+                        {stop.ticket.customer_name}
+                      </p>
+                      <Badge variant="outline" className="border-brass/50 text-[10px]">
+                        {stop.ticket.job_status}
+                      </Badge>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </>
           )}
+
           {selectedTech !== "all" && route.length > 1 && (
             <p className="text-xs text-muted-foreground">
               Route optimised with nearest-neighbour sequencing from Colombo for{" "}
