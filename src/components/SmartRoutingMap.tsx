@@ -323,10 +323,36 @@ export default function SmartRoutingMap() {
               No open jobs assigned to this technician yet.
             </p>
           ) : (
-            <ol className="space-y-3">
-              {route.map((stop, index) => (
-                <li
-                  key={stop.ticket.ticket_id}
+            <>
+              {tripQuery.isFetching ? (
+                <Skeleton className="h-16 w-full rounded-lg" />
+              ) : tripQuery.data ? (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-brass/40 bg-primary/5 p-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      Driving distance
+                    </p>
+                    <p className="font-display text-xl text-primary">
+                      {tripQuery.data.distanceKm.toFixed(1)} km
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                      Estimated time
+                    </p>
+                    <p className="font-display text-xl text-primary">
+                      {formatDuration(tripQuery.data.durationMin)}
+                    </p>
+                  </div>
+                </div>
+              ) : tripQuery.isError ? (
+                <p className="rounded-lg border border-border/60 p-3 text-xs text-muted-foreground">
+                  Live road routing is unavailable right now — showing an estimated sequence
+                  instead.
+                </p>
+              ) : null}
+              <ol className="space-y-3">
+
                   className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
                 >
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
