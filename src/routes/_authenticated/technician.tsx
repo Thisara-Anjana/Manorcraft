@@ -89,6 +89,9 @@ function TechnicianPortal() {
   // Role protection: non-technicians are redirected to the portal they can use.
   useEffect(() => {
     if (access.isPending || !access.data || access.data.isTechnician) return;
+    toast.error("The field portal is for technicians only", {
+      description: "Taking you back to your dashboard.",
+    });
     navigate({ to: "/dashboard", replace: true });
   }, [access.isPending, access.data, navigate]);
 
