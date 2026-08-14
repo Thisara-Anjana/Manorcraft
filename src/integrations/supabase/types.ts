@@ -107,6 +107,41 @@ export type Database = {
         }
         Relationships: []
       }
+      job_tickets_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          history_id: string
+          new_status: Database["public"]["Enums"]["job_status"]
+          old_status: Database["public"]["Enums"]["job_status"] | null
+          ticket_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          history_id?: string
+          new_status: Database["public"]["Enums"]["job_status"]
+          old_status?: Database["public"]["Enums"]["job_status"] | null
+          ticket_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          history_id?: string
+          new_status?: Database["public"]["Enums"]["job_status"]
+          old_status?: Database["public"]["Enums"]["job_status"] | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_tickets_history_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "job_tickets"
+            referencedColumns: ["ticket_id"]
+          },
+        ]
+      }
       technicians: {
         Row: {
           created_at: string
