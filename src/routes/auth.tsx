@@ -119,6 +119,23 @@ function AuthPage() {
     }
   };
 
+  const demoLogin = async (acc: DemoAccount) => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: acc.email,
+      password: "password123",
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("Demo login failed", { description: error.message });
+      return;
+    }
+    toast.success(`Signed in as ${acc.email}`);
+    navigate({ to: acc.to, replace: true });
+  };
+
+
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="surface-navy relative hidden flex-col justify-between p-14 lg:flex">
