@@ -56,7 +56,7 @@ function distance(a: [number, number], b: [number, number]) {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
 
-/** Nearest-neighbour ordering, starting from the stop closest to Colombo. */
+/** Nearest-neighbour ordering, used as a fallback when OSRM is unavailable. */
 function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[] {
   if (stops.length < 2) return stops;
   const remaining = [...stops];
@@ -80,6 +80,55 @@ function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[
   }
   return ordered;
 }
+
+type OsrmTrip = {
+  order: number[];
+  geometry: [number, number][];
+  distanceKm: number;
+  durationMin: number;
+};
+
+/** Ask OSRM for a street-level optimised trip. Index 0 of `positions` is the depot. */
+async function fetchOsrmTrip(positions: [number, number][]): Promise<OsrmTrip> {
+  const coords = positions.map(([lat, lon]) => `${lon},${lat}`).join(";");
+  const url = `https://router.project-osrm.org/trip/v1/driving/${coords}?roundtrip=false&source=first&overview=full&geometries=geojson`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`OSRM request failed (${res.status})`);
+  const json = (await res.json()) as {
+    code: string;
+    trips?: {
+      distance: number;
+      duration: number;
+      geometry: { coordinates: [number, number][] };
+    }[];
+    waypoints?: { waypoint_index: number }[];
+  };
+  const trip = json.trips?.[0];
+  if (json.code !== "Ok" || !trip) throw new Error("OSRM could not compute a route");
+
+  // waypoints[i].waypoint_index = position of input i in the optimised order.
+  const waypoints = json.waypoints ?? [];
+  const order = waypoints
+    .map((w, inputIndex) => ({ inputIndex, at: w.waypoint_index }))
+    .filter((w) => w.inputIndex > 0) // drop the depot
+    .sort((a, b) => a.at - b.at)
+    .map((w) => w.inputIndex - 1); // back to stop indices
+
+  return {
+    order,
+    geometry: trip.geometry.coordinates.map(([lon, lat]) => [lat, lon] as [number, number]),
+    distanceKm: trip.distance / 1000,
+    durationMin: trip.duration / 60,
+  };
+}
+
+function formatDuration(minutes: number) {
+  const total = Math.round(minutes);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return h > 0 ? `${h} hr ${m} min` : `${m} min`;
+}
+
 
 function markerIcon(status: string, label?: number) {
   const gold = "#c9a227";
