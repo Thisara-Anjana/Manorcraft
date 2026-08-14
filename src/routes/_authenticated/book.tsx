@@ -237,6 +237,11 @@ function BookPage() {
               {form.service} in {form.district} on{" "}
               {form.date ? format(form.date, "PPP") : ""} · {form.slot}
             </p>
+            {ticketId && (
+              <p className="mt-2 text-xs uppercase tracking-[0.16em] text-brass">
+                Ticket #{ticketId.slice(0, 8)}
+              </p>
+            )}
             <div className="mt-8 flex justify-center">
               <Button
                 variant="brass"
@@ -244,9 +249,11 @@ function BookPage() {
                 onClick={() => {
                   setForm(initialState);
                   setStep(0);
+                  setTicketId(null);
                   setConfirmed(false);
                 }}
               >
+
                 Book another service
               </Button>
             </div>
