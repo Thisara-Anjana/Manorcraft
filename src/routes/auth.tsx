@@ -202,11 +202,33 @@ function AuthPage() {
             </TabsContent>
           </Tabs>
 
+          <div className="mt-10 rounded-sm border border-dashed border-brass/50 p-5">
+            <p className="text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
+              Demo Logins (temporary)
+            </p>
+            <div className="mt-4 grid gap-2">
+              {DEMO_ACCOUNTS.map((acc) => (
+                <Button
+                  key={acc.email}
+                  type="button"
+                  variant="outlineBrass"
+                  className="w-full justify-between"
+                  disabled={loading}
+                  onClick={() => demoLogin(acc)}
+                >
+                  <span>{acc.label}</span>
+                  <span className="text-xs opacity-70">{acc.to}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <p className="mt-8 text-center text-xs text-muted-foreground">
             <Link to="/" className="uppercase tracking-[0.16em] hover:text-brass">
               Return to Manorcraft
             </Link>
           </p>
+
         </div>
       </main>
     </div>
