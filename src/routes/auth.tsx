@@ -41,6 +41,15 @@ const signUpSchema = signInSchema.extend({
   phone: z.string().trim().min(7, "Please enter a valid phone number.").max(20),
 });
 
+const DEMO_ACCOUNTS = [
+  { label: "Log in as Admin", email: "admin@manorcraft.com", to: "/admin" },
+  { label: "Log in as Tech", email: "tech@manorcraft.com", to: "/technician" },
+  { label: "Log in as Customer", email: "customer@manorcraft.com", to: "/dashboard" },
+] as const;
+
+type DemoAccount = (typeof DEMO_ACCOUNTS)[number];
+
+
 function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
