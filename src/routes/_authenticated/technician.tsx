@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -6,6 +7,7 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
+  History,
   MapPin,
   PlayCircle,
   User,
@@ -15,6 +17,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TicketHistory } from "@/components/TicketHistory";
 import { checkIsTechnician, listMyJobs, updateJobStatus } from "@/lib/technician.functions";
 
 export const Route = createFileRoute("/_authenticated/technician")({
@@ -174,6 +177,8 @@ function JobCard({
   pending: boolean;
   onUpdate: (status: "In Progress" | "Completed") => void;
 }) {
+  const [showHistory, setShowHistory] = useState(false);
+
   return (
     <article className="overflow-hidden rounded-sm border border-border/70 bg-background shadow-sm">
       <div className="flex items-start justify-between gap-3 border-b border-border/60 bg-secondary/40 px-5 py-4">
@@ -237,6 +242,20 @@ function JobCard({
           <p className="flex items-center justify-center gap-2 rounded-sm bg-muted py-4 text-sm text-muted-foreground">
             <Clock className="size-4" /> Awaiting dispatch
           </p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowHistory((v) => !v)}
+          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-border/70 text-xs uppercase tracking-[0.18em] text-muted-foreground active:scale-[0.98]"
+        >
+          <History className="size-4 text-brass" />
+          {showHistory ? "Hide history" : "Status history"}
+        </button>
+        {showHistory && (
+          <div className="mt-4 rounded-sm bg-muted/40 p-4">
+            <TicketHistory ticketId={job.ticket_id} />
+          </div>
         )}
       </div>
     </article>
