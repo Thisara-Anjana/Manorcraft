@@ -412,9 +412,10 @@ function BookPage() {
                   Next <ChevronRight />
                 </Button>
               ) : (
-                <Button variant="brass" size="xl" onClick={handleConfirm}>
-                  Confirm Booking
+                <Button variant="brass" size="xl" onClick={handleConfirm} disabled={submitting}>
+                  {submitting && <Loader2 className="animate-spin" />} Confirm Booking
                 </Button>
+
               )}
             </div>
           </section>
