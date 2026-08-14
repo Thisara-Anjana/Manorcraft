@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { TicketHistory } from "@/components/TicketHistory";
 import { checkIsTechnician, listMyJobs, updateJobStatus } from "@/lib/technician.functions";
@@ -88,6 +89,9 @@ function TechnicianPortal() {
   // Role protection: non-technicians are redirected to the portal they can use.
   useEffect(() => {
     if (access.isPending || !access.data || access.data.isTechnician) return;
+    toast.error("The field portal is for technicians only", {
+      description: "Taking you back to your dashboard.",
+    });
     navigate({ to: "/dashboard", replace: true });
   }, [access.isPending, access.data, navigate]);
 
@@ -127,7 +131,9 @@ function TechnicianPortal() {
 
       <main className="mx-auto max-w-2xl px-5 py-8">
         {access.isPending ? (
-          <p className="text-sm text-muted-foreground">Checking your field credentials…</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin text-brass" /> Checking your field credentials…
+          </p>
         ) : !access.data?.isTechnician ? (
           <div className="rounded-sm border border-border/70 bg-background p-8 text-center">
             <h1 className="font-display text-2xl">Field access only</h1>
@@ -150,7 +156,17 @@ function TechnicianPortal() {
             </p>
 
             {jobs.isPending ? (
-              <p className="mt-8 text-sm text-muted-foreground">Loading your jobs…</p>
+              <div className="mt-8 space-y-5">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="rounded-sm border border-border/70 bg-background p-5">
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="mt-3 h-4 w-28" />
+                    <Skeleton className="mt-5 h-4 w-full" />
+                    <Skeleton className="mt-3 h-4 w-3/4" />
+                    <Skeleton className="mt-5 h-14 w-full" />
+                  </div>
+                ))}
+              </div>
             ) : list.length === 0 ? (
               <div className="mt-8 rounded-sm border border-dashed border-border bg-background p-10 text-center">
                 <p className="font-display text-xl">No jobs assigned yet</p>

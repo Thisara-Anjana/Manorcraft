@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, Clock, Loader2, MapPin, Plus, Wrench } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Plus, Wrench } from "lucide-react";
 
 import { SiteNav } from "@/components/SiteNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listMyBookings } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -79,8 +80,23 @@ function CustomerDashboard() {
 
         <div className="mt-10 space-y-4">
           {isPending ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading your bookings…
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-md border border-border/70 bg-card p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-9 w-9 rounded-md" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-40" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                  </div>
+                  <Skeleton className="mt-5 h-4 w-full" />
+                  <Skeleton className="mt-3 h-4 w-2/3" />
+                </div>
+              ))}
             </div>
           ) : !data || data.length === 0 ? (
             <div className="rounded-md border border-border/70 bg-card p-10 text-center">
