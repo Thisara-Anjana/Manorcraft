@@ -1,14 +1,13 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
 
 const routedLinks = [
   { label: "Home", to: "/" as const },
   { label: "Book a Service", to: "/book" as const },
-];
-const pendingLinks = [
-  { label: "Admin Login", href: "/admin-login" },
-  { label: "Technician Login", href: "/technician-login" },
+  { label: "Admin", to: "/admin" as const },
 ];
 
 const linkClass =
@@ -16,6 +15,33 @@ const linkClass =
 
 export function SiteNav({ solid = false }: { solid?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const navigate = useNavigate();
+  const router = useRouter();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    router.invalidate();
+    navigate({ to: "/auth", replace: true });
+  };
+
+  const authLink = signedIn ? (
+    <button type="button" onClick={signOut} className={linkClass}>
+      Sign Out
+    </button>
+  ) : (
+    <Link to="/auth" className={linkClass} activeProps={{ className: "text-brass" }}>
+      Login / Sign Up
+    </Link>
+  );
 
   return (
     <header className={solid ? "surface-navy relative z-30" : "absolute inset-x-0 top-0 z-30"}>
@@ -42,13 +68,7 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
               </Link>
             </li>
           ))}
-          {pendingLinks.map((link) => (
-            <li key={link.label}>
-              <a href={link.href} className={linkClass}>
-                {link.label}
-              </a>
-            </li>
-          ))}
+          <li>{authLink}</li>
         </ul>
 
         <button
@@ -70,13 +90,7 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
               </Link>
             </li>
           ))}
-          {pendingLinks.map((link) => (
-            <li key={link.label}>
-              <a href={link.href} className={linkClass}>
-                {link.label}
-              </a>
-            </li>
-          ))}
+          <li>{authLink}</li>
         </ul>
       )}
     </header>
