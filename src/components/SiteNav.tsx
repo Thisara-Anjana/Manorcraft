@@ -8,6 +8,7 @@ const routedLinks = [
   { label: "Home", to: "/" as const },
   { label: "Book a Service", to: "/book" as const },
   { label: "Admin", to: "/admin" as const },
+  { label: "Technician", to: "/technician-login" as const },
 ];
 
 const linkClass =

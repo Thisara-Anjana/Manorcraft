@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/book'
+import { Route as AuthenticatedTechnicianRouteImport } from './routes/_authenticated/technician'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminDispatchRouteImport } from './routes/_authenticated/admin.dispatch'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
@@ -33,6 +35,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TechnicianLoginRoute = TechnicianLoginRouteImport.update({
+  id: '/technician-login',
+  path: '/technician-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -41,6 +48,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedBookRoute = AuthenticatedBookRouteImport.update({
   id: '/book',
   path: '/book',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTechnicianRoute = AuthenticatedTechnicianRouteImport.update({
+  id: '/technician',
+  path: '/technician',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -70,8 +82,10 @@ const AuthenticatedAdminTechniciansRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/book': typeof AuthenticatedBookRoute
+  '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
@@ -80,7 +94,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/book': typeof AuthenticatedBookRoute
+  '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
@@ -91,8 +107,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/book': typeof AuthenticatedBookRoute
+  '/_authenticated/technician': typeof AuthenticatedTechnicianRoute
   '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
@@ -103,8 +121,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/technician-login'
     | '/admin'
     | '/book'
+    | '/technician'
     | '/admin/dispatch'
     | '/admin/settings'
     | '/admin/technicians'
@@ -113,7 +133,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/technician-login'
     | '/book'
+    | '/technician'
     | '/admin/dispatch'
     | '/admin/settings'
     | '/admin/technicians'
@@ -123,8 +145,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/technician-login'
     | '/_authenticated/admin'
     | '/_authenticated/book'
+    | '/_authenticated/technician'
     | '/_authenticated/admin/dispatch'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/technicians'
@@ -135,6 +159,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  TechnicianLoginRoute: typeof TechnicianLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -160,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/technician-login': {
+      id: '/technician-login'
+      path: '/technician-login'
+      fullPath: '/technician-login'
+      preLoaderRoute: typeof TechnicianLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -172,6 +204,13 @@ declare module '@tanstack/react-router' {
       path: '/book'
       fullPath: '/book'
       preLoaderRoute: typeof AuthenticatedBookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/technician': {
+      id: '/_authenticated/technician'
+      path: '/technician'
+      fullPath: '/technician'
+      preLoaderRoute: typeof AuthenticatedTechnicianRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/': {
@@ -225,11 +264,13 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookRoute: typeof AuthenticatedBookRoute
+  AuthenticatedTechnicianRoute: typeof AuthenticatedTechnicianRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookRoute: AuthenticatedBookRoute,
+  AuthenticatedTechnicianRoute: AuthenticatedTechnicianRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -239,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  TechnicianLoginRoute: TechnicianLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
