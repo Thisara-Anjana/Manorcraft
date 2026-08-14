@@ -16,7 +16,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Manorcraft | Elite Home Maintenance & Craftsmanship" },
       {
         property: "og:description",
-        content: "Verified craftsmen for plumbing, electrical, masonry and AC repair across Sri Lanka.",
+        content:
+          "Verified craftsmen for plumbing, electrical, masonry and AC repair across Sri Lanka.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -25,17 +26,18 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-
 const services = [
   {
     icon: Droplets,
     title: "Plumbing",
-    description: "Leak diagnostics, pipe restoration and fixture installation handled with precision.",
+    description:
+      "Leak diagnostics, pipe restoration and fixture installation handled with precision.",
   },
   {
     icon: Zap,
     title: "Electrical",
-    description: "Certified wiring, panel upgrades and lighting design for safe, refined interiors.",
+    description:
+      "Certified wiring, panel upgrades and lighting design for safe, refined interiors.",
   },
   {
     icon: Hammer,

@@ -50,7 +50,9 @@ export function TicketHistory({ ticketId }: { ticketId: string }) {
             }`}
           />
           <p className="text-sm font-medium text-foreground">
-            {entry.old_status ? `${entry.old_status} → ${entry.new_status}` : `Created as ${entry.new_status}`}
+            {entry.old_status
+              ? `${entry.old_status} → ${entry.new_status}`
+              : `Created as ${entry.new_status}`}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {formatWhen(entry.created_at)} · {entry.actor_name}

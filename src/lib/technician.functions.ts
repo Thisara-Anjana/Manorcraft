@@ -40,7 +40,7 @@ export const listMyJobs = createServerFn({ method: "GET" })
     const names = new Map((customers ?? []).map((c) => [c.customer_id, c.full_name]));
     return tickets.map((t: Record<string, unknown>) => ({
       ...t,
-      customer_name: names.get(t['customer_id'] as string) ?? "Manorcraft client",
+      customer_name: names.get(t["customer_id"] as string) ?? "Manorcraft client",
     }));
   });
 

@@ -102,7 +102,6 @@ function TechnicianPortal() {
     navigate({ to: "/technician-login", replace: true });
   };
 
-
   const list = jobs.data ?? [];
   const active = list.filter((j) => j.job_status !== "Completed");
   const done = list.filter((j) => j.job_status === "Completed");
@@ -142,7 +141,6 @@ function TechnicianPortal() {
               dashboard…
             </p>
           </div>
-
         ) : (
           <>
             <span className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
@@ -152,7 +150,8 @@ function TechnicianPortal() {
               {access.data.profile?.full_name ?? "My Jobs"}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {active.length} active {active.length === 1 ? "job" : "jobs"} · {done.length} completed
+              {active.length} active {active.length === 1 ? "job" : "jobs"} · {done.length}{" "}
+              completed
             </p>
 
             {jobs.isPending ? (

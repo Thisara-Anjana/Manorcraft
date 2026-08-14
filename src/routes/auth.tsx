@@ -41,15 +41,6 @@ const signUpSchema = signInSchema.extend({
   phone: z.string().trim().min(7, "Please enter a valid phone number.").max(20),
 });
 
-const DEMO_ACCOUNTS = [
-  { label: "Log in as Admin", email: "admin@manorcraft.com", to: "/admin" },
-  { label: "Log in as Tech", email: "tech@manorcraft.com", to: "/technician" },
-  { label: "Log in as Customer", email: "customer@manorcraft.com", to: "/dashboard" },
-] as const;
-
-type DemoAccount = (typeof DEMO_ACCOUNTS)[number];
-
-
 function AuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -119,23 +110,6 @@ function AuthPage() {
     }
   };
 
-  const demoLogin = async (acc: DemoAccount) => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: acc.email,
-      password: "password123",
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Demo login failed", { description: error.message });
-      return;
-    }
-    toast.success(`Signed in as ${acc.email}`);
-    navigate({ to: acc.to, replace: true });
-  };
-
-
-
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="surface-navy relative hidden flex-col justify-between p-14 lg:flex">
@@ -186,7 +160,13 @@ function AuthPage() {
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-5 pt-6">
                 <EmailPassword form={form} errors={errors} set={set} />
-                <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
+                <Button
+                  type="submit"
+                  variant="brass"
+                  size="xl"
+                  className="w-full"
+                  disabled={loading}
+                >
                   {loading && <Loader2 className="animate-spin" />} Sign In
                 </Button>
               </form>
@@ -195,7 +175,10 @@ function AuthPage() {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-5 pt-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  <Label
+                    htmlFor="fullName"
+                    className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+                  >
                     Full name
                   </Label>
                   <Input
@@ -205,10 +188,15 @@ function AuthPage() {
                     onChange={(e) => set("fullName", e.target.value)}
                     placeholder="Thisara Anjana"
                   />
-                  {errors['fullName'] && <p className="text-xs text-destructive">{errors['fullName']}</p>}
+                  {errors["fullName"] && (
+                    <p className="text-xs text-destructive">{errors["fullName"]}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  <Label
+                    htmlFor="phone"
+                    className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+                  >
                     Phone number
                   </Label>
                   <Input
@@ -218,43 +206,27 @@ function AuthPage() {
                     onChange={(e) => set("phone", e.target.value)}
                     placeholder="+94 77 123 4567"
                   />
-                  {errors['phone'] && <p className="text-xs text-destructive">{errors['phone']}</p>}
+                  {errors["phone"] && <p className="text-xs text-destructive">{errors["phone"]}</p>}
                 </div>
                 <EmailPassword form={form} errors={errors} set={set} />
-                <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
+                <Button
+                  type="submit"
+                  variant="brass"
+                  size="xl"
+                  className="w-full"
+                  disabled={loading}
+                >
                   {loading && <Loader2 className="animate-spin" />} Create Account
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
 
-          <div className="mt-10 rounded-sm border border-dashed border-brass/50 p-5">
-            <p className="text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
-              Demo Logins (temporary)
-            </p>
-            <div className="mt-4 grid gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <Button
-                  key={acc.email}
-                  type="button"
-                  variant="outlineBrass"
-                  className="w-full justify-between"
-                  disabled={loading}
-                  onClick={() => demoLogin(acc)}
-                >
-                  <span>{acc.label}</span>
-                  <span className="text-xs opacity-70">{acc.to}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-
           <p className="mt-8 text-center text-xs text-muted-foreground">
             <Link to="/" className="uppercase tracking-[0.16em] hover:text-brass">
               Return to Manorcraft
             </Link>
           </p>
-
         </div>
       </main>
     </div>
@@ -273,7 +245,10 @@ function EmailPassword({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        <Label
+          htmlFor="email"
+          className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+        >
           Email
         </Label>
         <Input
@@ -285,10 +260,13 @@ function EmailPassword({
           onChange={(e) => set("email", e.target.value)}
           placeholder="you@example.com"
         />
-        {errors['email'] && <p className="text-xs text-destructive">{errors['email']}</p>}
+        {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        <Label
+          htmlFor="password"
+          className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+        >
           Password
         </Label>
         <Input
@@ -299,7 +277,7 @@ function EmailPassword({
           onChange={(e) => set("password", e.target.value)}
           placeholder="••••••••"
         />
-        {errors['password'] && <p className="text-xs text-destructive">{errors['password']}</p>}
+        {errors["password"] && <p className="text-xs text-destructive">{errors["password"]}</p>}
       </div>
     </>
   );

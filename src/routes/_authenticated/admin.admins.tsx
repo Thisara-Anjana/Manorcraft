@@ -103,8 +103,8 @@ function AdminAccessPage() {
     <div className="mx-auto max-w-6xl">
       <h1 className="font-display text-3xl tracking-tight">Admin Access</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {adminCount} administrator{adminCount === 1 ? "" : "s"} across{" "}
-        {(users.data ?? []).length} account{(users.data ?? []).length === 1 ? "" : "s"}.
+        {adminCount} administrator{adminCount === 1 ? "" : "s"} across {(users.data ?? []).length}{" "}
+        account{(users.data ?? []).length === 1 ? "" : "s"}.
       </p>
 
       <Card className="mt-6 border-border/70">
@@ -221,8 +221,7 @@ function AdminAccessPage() {
               variant={pending?.action === "grant" ? "brass" : "destructive"}
               disabled={mutation.isPending}
               onClick={() =>
-                pending &&
-                mutation.mutate({ userId: pending.user.userId, action: pending.action })
+                pending && mutation.mutate({ userId: pending.user.userId, action: pending.action })
               }
             >
               {mutation.isPending ? "Saving…" : "Confirm"}

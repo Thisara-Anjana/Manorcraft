@@ -89,7 +89,10 @@ function TechnicianLogin() {
 
         <form onSubmit={submit} className="mt-8 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="tech-email" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            <Label
+              htmlFor="tech-email"
+              className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+            >
               Email
             </Label>
             <Input
@@ -102,10 +105,13 @@ function TechnicianLogin() {
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               placeholder="you@manorcraft.lk"
             />
-            {errors['email'] && <p className="text-xs text-destructive">{errors['email']}</p>}
+            {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="tech-password" className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            <Label
+              htmlFor="tech-password"
+              className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+            >
               Password
             </Label>
             <Input
@@ -117,9 +123,15 @@ function TechnicianLogin() {
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               placeholder="••••••••"
             />
-            {errors['password'] && <p className="text-xs text-destructive">{errors['password']}</p>}
+            {errors["password"] && <p className="text-xs text-destructive">{errors["password"]}</p>}
           </div>
-          <Button type="submit" variant="brass" size="xl" className="h-14 w-full text-base" disabled={loading}>
+          <Button
+            type="submit"
+            variant="brass"
+            size="xl"
+            className="h-14 w-full text-base"
+            disabled={loading}
+          >
             {loading && <Loader2 className="animate-spin" />} Enter Field Portal
           </Button>
         </form>

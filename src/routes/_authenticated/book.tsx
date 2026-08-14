@@ -125,7 +125,10 @@ function Field({
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={htmlFor} className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+      <Label
+        htmlFor={htmlFor}
+        className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+      >
         {label}
       </Label>
       {children}
@@ -208,7 +211,6 @@ function BookPage() {
     });
   };
 
-
   return (
     <div className="min-h-screen bg-secondary/40">
       <SiteNav solid />
@@ -234,8 +236,8 @@ function BookPage() {
             </span>
             <h2 className="mt-6 text-3xl font-medium text-foreground">Booking confirmed</h2>
             <p className="mt-3 text-sm text-muted-foreground">
-              {form.service} in {form.district} on{" "}
-              {form.date ? format(form.date, "PPP") : ""} · {form.slot}
+              {form.service} in {form.district} on {form.date ? format(form.date, "PPP") : ""} ·{" "}
+              {form.slot}
             </p>
             {ticketId && (
               <p className="mt-2 text-xs uppercase tracking-[0.16em] text-brass">
@@ -253,7 +255,6 @@ function BookPage() {
                   setConfirmed(false);
                 }}
               >
-
                 Book another service
               </Button>
             </div>
@@ -299,7 +300,7 @@ function BookPage() {
             <div className="space-y-6 p-8 sm:p-10">
               {step === 0 && (
                 <>
-                  <Field label="Service category" error={errors['service']}>
+                  <Field label="Service category" error={errors["service"]}>
                     <Select value={form.service} onValueChange={(v) => set("service", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select a service" />
@@ -314,7 +315,7 @@ function BookPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Describe the issue" error={errors['issue']} htmlFor="issue">
+                  <Field label="Describe the issue" error={errors["issue"]} htmlFor="issue">
                     <Textarea
                       id="issue"
                       rows={5}
@@ -329,7 +330,7 @@ function BookPage() {
 
               {step === 1 && (
                 <>
-                  <Field label="District" error={errors['district']}>
+                  <Field label="District" error={errors["district"]}>
                     <Select value={form.district} onValueChange={(v) => set("district", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select your district" />
@@ -344,7 +345,7 @@ function BookPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Full address" error={errors['address']} htmlFor="address">
+                  <Field label="Full address" error={errors["address"]} htmlFor="address">
                     <Input
                       id="address"
                       maxLength={200}
@@ -359,7 +360,7 @@ function BookPage() {
 
               {step === 2 && (
                 <>
-                  <Field label="Preferred date" error={errors['date']}>
+                  <Field label="Preferred date" error={errors["date"]}>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -386,7 +387,7 @@ function BookPage() {
                     </Popover>
                   </Field>
 
-                  <Field label="Preferred time slot" error={errors['slot']}>
+                  <Field label="Preferred time slot" error={errors["slot"]}>
                     <Select value={form.slot} onValueChange={(v) => set("slot", v)}>
                       <SelectTrigger className="h-11">
                         <SelectValue placeholder="Select a time slot" />
@@ -422,7 +423,6 @@ function BookPage() {
                 <Button variant="brass" size="xl" onClick={handleConfirm} disabled={submitting}>
                   {submitting && <Loader2 className="animate-spin" />} Confirm Booking
                 </Button>
-
               )}
             </div>
           </section>

@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
 async function assertAdmin(context: Ctx) {
   const { data, error } = await context.supabase
@@ -47,17 +49,14 @@ export const listUsersWithRoles = createServerFn({ method: "GET" })
     for (const r of roles ?? []) {
       roleMap.set(r.user_id, [...(roleMap.get(r.user_id) ?? []), r.role as string]);
     }
-    const customerMap = new Map(
-      (customers ?? []).map((c) => [c.customer_id, c] as const),
-    );
+    const customerMap = new Map((customers ?? []).map((c) => [c.customer_id, c] as const));
     const techMap = new Map((technicians ?? []).map((t) => [t.technician_id, t] as const));
 
     return (usersData.users ?? [])
       .map((u) => ({
         userId: u.id,
         email: u.email ?? "",
-        fullName:
-          customerMap.get(u.id)?.full_name ?? techMap.get(u.id)?.full_name ?? null,
+        fullName: customerMap.get(u.id)?.full_name ?? techMap.get(u.id)?.full_name ?? null,
         phone: customerMap.get(u.id)?.phone_number ?? null,
         createdAt: u.created_at,
         roles: (roleMap.get(u.id) ?? []).sort(),
