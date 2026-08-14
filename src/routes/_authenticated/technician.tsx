@@ -132,10 +132,11 @@ function TechnicianPortal() {
           <div className="rounded-sm border border-border/70 bg-background p-8 text-center">
             <h1 className="font-display text-2xl">Field access only</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              This portal is reserved for Manorcraft technicians. Ask a branch manager to register
-              your account as a technician.
+              This portal is reserved for Manorcraft technicians — redirecting you to your
+              dashboard…
             </p>
           </div>
+
         ) : (
           <>
             <span className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
