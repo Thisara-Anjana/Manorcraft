@@ -192,7 +192,7 @@ export default function SmartRoutingMap() {
                           Assign to tech
                         </p>
                         <Select
-                          value={ticket.technician_id ?? undefined}
+                          {...(ticket.technician_id ? { value: ticket.technician_id } : {})}
                           onValueChange={(technicianId) =>
                             assignMutation.mutate({ ticketId: ticket.ticket_id, technicianId })
                           }
