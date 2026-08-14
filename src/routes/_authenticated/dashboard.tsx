@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, Clock, Loader2, MapPin, Plus, Wrench } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Plus, Wrench } from "lucide-react";
 
 import { SiteNav } from "@/components/SiteNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listMyBookings } from "@/lib/portal.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
