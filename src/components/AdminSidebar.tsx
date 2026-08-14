@@ -1,6 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, ClipboardList, Users, Settings, ShieldCheck } from "lucide-react";
 
+import { useBrandLogo } from "@/hooks/useBrandLogo";
+
 import {
   Sidebar,
   SidebarContent,
@@ -23,13 +25,22 @@ const items = [
 
 export function AdminSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
+  const logo = useBrandLogo();
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-5">
-        <span className="font-display text-xl tracking-wide text-sidebar-foreground">
-          Manorcraft
-        </span>
+        {logo.data?.url ? (
+          <img
+            src={logo.data.url}
+            alt="Manorcraft"
+            className="h-8 max-w-[150px] object-contain"
+          />
+        ) : (
+          <span className="font-display text-xl tracking-wide text-sidebar-foreground">
+            Manorcraft
+          </span>
+        )}
         <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
           Admin
         </span>

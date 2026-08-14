@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 
+import { useBrandLogo } from "@/hooks/useBrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 const routedLinks = [
@@ -19,6 +20,7 @@ const linkClass =
 export function SiteNav({ solid = false }: { solid?: boolean }) {
   const [open, setOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const logo = useBrandLogo();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -50,12 +52,22 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
     <header className={solid ? "surface-navy relative z-30" : "absolute inset-x-0 top-0 z-30"}>
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <Link to="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-brass/70">
-            <span className="font-display text-lg text-brass">M</span>
-          </span>
-          <span className="font-display text-2xl tracking-[0.18em] text-primary-foreground uppercase">
-            Manorcraft
-          </span>
+          {logo.data?.url ? (
+            <img
+              src={logo.data.url}
+              alt="Manorcraft"
+              className="h-10 max-w-[200px] object-contain"
+            />
+          ) : (
+            <>
+              <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-brass/70">
+                <span className="font-display text-lg text-brass">M</span>
+              </span>
+              <span className="font-display text-2xl tracking-[0.18em] text-primary-foreground uppercase">
+                Manorcraft
+              </span>
+            </>
+          )}
         </Link>
 
         <ul className="hidden items-center gap-9 md:flex">
