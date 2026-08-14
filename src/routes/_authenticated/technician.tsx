@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { TicketHistory } from "@/components/TicketHistory";
 import { checkIsTechnician, listMyJobs, updateJobStatus } from "@/lib/technician.functions";
