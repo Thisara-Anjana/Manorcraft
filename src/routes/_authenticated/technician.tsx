@@ -127,7 +127,9 @@ function TechnicianPortal() {
 
       <main className="mx-auto max-w-2xl px-5 py-8">
         {access.isPending ? (
-          <p className="text-sm text-muted-foreground">Checking your field credentials…</p>
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin text-brass" /> Checking your field credentials…
+          </p>
         ) : !access.data?.isTechnician ? (
           <div className="rounded-sm border border-border/70 bg-background p-8 text-center">
             <h1 className="font-display text-2xl">Field access only</h1>
