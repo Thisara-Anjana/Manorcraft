@@ -60,22 +60,23 @@ function distance(a: [number, number], b: [number, number]) {
 function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[] {
   if (stops.length < 2) return stops;
   const remaining = [...stops];
-  const start = DISTRICT_COORDS.colombo;
-  let currentIndex = remaining.reduce(
-    (best, stop, i) =>
-      distance(stop.position, start) < distance(remaining[best].position, start) ? i : best,
-    0,
-  );
-  const ordered: T[] = [remaining.splice(currentIndex, 1)[0]];
+  let cursor: [number, number] = DISTRICT_COORDS["colombo"] ?? SRI_LANKA_CENTER;
+  const ordered: T[] = [];
 
   while (remaining.length > 0) {
-    const last = ordered[ordered.length - 1].position;
-    currentIndex = remaining.reduce(
-      (best, stop, i) =>
-        distance(stop.position, last) < distance(remaining[best].position, last) ? i : best,
-      0,
-    );
-    ordered.push(remaining.splice(currentIndex, 1)[0]);
+    let bestIndex = 0;
+    let bestDistance = Infinity;
+    remaining.forEach((stop, i) => {
+      const d = distance(stop.position, cursor);
+      if (d < bestDistance) {
+        bestDistance = d;
+        bestIndex = i;
+      }
+    });
+    const [next] = remaining.splice(bestIndex, 1);
+    if (!next) break;
+    ordered.push(next);
+    cursor = next.position;
   }
   return ordered;
 }
