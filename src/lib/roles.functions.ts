@@ -1,9 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
 async function assertAdmin(context: Ctx) {
   const { data, error } = await context.supabase

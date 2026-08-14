@@ -44,6 +44,9 @@ export const Route = createFileRoute("/_authenticated/admin/dispatch")({
   component: DispatchBoard,
 });
 
+type TicketRow = Awaited<ReturnType<typeof listTickets>>[number];
+type TechnicianRow = Awaited<ReturnType<typeof listTechnicians>>[number];
+
 const statusStyles: Record<string, string> = {
   Pending: "border-transparent bg-muted text-muted-foreground",
   Assigned: "border-brass/50 bg-brass/15 text-accent-foreground",
@@ -116,7 +119,7 @@ function DispatchBoard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tickets.data.map((t: any) => (
+                  {tickets.data.map((t: TicketRow) => (
                     <TableRow key={t.ticket_id}>
                       <TableCell className="font-medium uppercase">
                         {t.ticket_id.slice(0, 8)}
@@ -171,7 +174,7 @@ function DispatchBoard() {
             <p className="text-sm text-muted-foreground">Loading roster…</p>
           ) : techs.data && techs.data.length > 0 ? (
             <ul className="max-h-80 space-y-2 overflow-y-auto">
-              {techs.data.map((tech: any) => (
+              {techs.data.map((tech: TechnicianRow) => (
                 <li
                   key={tech.technician_id}
                   className="flex items-center justify-between gap-4 rounded-md border border-border/70 p-3"

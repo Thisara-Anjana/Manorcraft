@@ -1,9 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
-type Ctx = { supabase: any; userId: string };
+type SupabaseClientLike = SupabaseClient<Database>;
+type Ctx = { supabase: SupabaseClientLike; userId: string };
 
 async function assertAdmin(context: Ctx) {
   const { data, error } = await context.supabase
@@ -59,8 +62,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     if (ticketsRes.error) throw new Error(ticketsRes.error.message);
     if (techsRes.error) throw new Error(techsRes.error.message);
 
-    const tickets = (ticketsRes.data ?? []) as any[];
-    const techs = (techsRes.data ?? []) as any[];
+    const tickets = ticketsRes.data ?? [];
+    const techs = techsRes.data ?? [];
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
