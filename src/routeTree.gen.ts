@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/book'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -31,6 +32,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TechnicianLoginRoute = TechnicianLoginRouteImport.update({
+  id: '/technician-login',
+  path: '/technician-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -70,6 +76,7 @@ const AuthenticatedAdminTechniciansRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/book': typeof AuthenticatedBookRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/book': typeof AuthenticatedBookRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/technician-login': typeof TechnicianLoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/book': typeof AuthenticatedBookRoute
   '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/technician-login'
     | '/admin'
     | '/book'
     | '/admin/dispatch'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/technician-login'
     | '/book'
     | '/admin/dispatch'
     | '/admin/settings'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/technician-login'
     | '/_authenticated/admin'
     | '/_authenticated/book'
     | '/_authenticated/admin/dispatch'
@@ -135,6 +147,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  TechnicianLoginRoute: typeof TechnicianLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/technician-login': {
+      id: '/technician-login'
+      path: '/technician-login'
+      fullPath: '/technician-login'
+      preLoaderRoute: typeof TechnicianLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  TechnicianLoginRoute: TechnicianLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
