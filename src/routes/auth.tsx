@@ -41,13 +41,6 @@ const signUpSchema = signInSchema.extend({
   phone: z.string().trim().min(7, "Please enter a valid phone number.").max(20),
 });
 
-const DEMO_ACCOUNTS = [
-  { label: "Log in as Admin", email: "admin@manorcraft.com", to: "/admin" },
-  { label: "Log in as Tech", email: "tech@manorcraft.com", to: "/technician" },
-  { label: "Log in as Customer", email: "customer@manorcraft.com", to: "/dashboard" },
-] as const;
-
-type DemoAccount = (typeof DEMO_ACCOUNTS)[number];
 
 
 function AuthPage() {
@@ -119,20 +112,6 @@ function AuthPage() {
     }
   };
 
-  const demoLogin = async (acc: DemoAccount) => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: acc.email,
-      password: "password123",
-    });
-    setLoading(false);
-    if (error) {
-      toast.error("Demo login failed", { description: error.message });
-      return;
-    }
-    toast.success(`Signed in as ${acc.email}`);
-    navigate({ to: acc.to, replace: true });
-  };
 
 
 
@@ -228,26 +207,6 @@ function AuthPage() {
             </TabsContent>
           </Tabs>
 
-          <div className="mt-10 rounded-sm border border-dashed border-brass/50 p-5">
-            <p className="text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
-              Demo Logins (temporary)
-            </p>
-            <div className="mt-4 grid gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <Button
-                  key={acc.email}
-                  type="button"
-                  variant="outlineBrass"
-                  className="w-full justify-between"
-                  disabled={loading}
-                  onClick={() => demoLogin(acc)}
-                >
-                  <span>{acc.label}</span>
-                  <span className="text-xs opacity-70">{acc.to}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
 
           <p className="mt-8 text-center text-xs text-muted-foreground">
             <Link to="/" className="uppercase tracking-[0.16em] hover:text-brass">
