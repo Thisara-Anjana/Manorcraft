@@ -13,7 +13,6 @@ const routedLinks = [
   { label: "Technician", to: "/technician" as const },
 ];
 
-
 const linkClass =
   "text-xs uppercase tracking-[0.16em] text-primary-foreground/75 transition-colors hover:text-brass";
 

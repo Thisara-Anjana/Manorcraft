@@ -140,11 +140,7 @@ function AdminSettings() {
                   if (file) void handleFile(file);
                 }}
               />
-              <Button
-                variant="brass"
-                disabled={busy}
-                onClick={() => inputRef.current?.click()}
-              >
+              <Button variant="brass" disabled={busy} onClick={() => inputRef.current?.click()}>
                 {busy ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

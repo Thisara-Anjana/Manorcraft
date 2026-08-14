@@ -13,17 +13,12 @@ export function useBrandLogo() {
     queryKey: BRAND_LOGO_QUERY_KEY,
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("brand_settings")
-        .select("logo_path")
-        .maybeSingle();
+      const { data } = await supabase.from("brand_settings").select("logo_path").maybeSingle();
 
       const path = data?.logo_path;
       if (!path) return { path: null as string | null, url: null as string | null };
 
-      const signed = await supabase.storage
-        .from("brand_assets")
-        .createSignedUrl(path, 60 * 60);
+      const signed = await supabase.storage.from("brand_assets").createSignedUrl(path, 60 * 60);
 
       return { path, url: signed.data?.signedUrl ?? null };
     },

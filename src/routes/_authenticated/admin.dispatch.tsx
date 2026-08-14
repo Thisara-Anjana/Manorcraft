@@ -99,9 +99,7 @@ function DispatchBoard() {
               ))}
             </div>
           ) : tickets.isError ? (
-            <p className="px-6 text-sm text-destructive">
-              {(tickets.error as Error).message}
-            </p>
+            <p className="px-6 text-sm text-destructive">{(tickets.error as Error).message}</p>
           ) : tickets.data.length === 0 ? (
             <p className="px-6 text-sm text-muted-foreground">No tickets have been booked yet.</p>
           ) : (

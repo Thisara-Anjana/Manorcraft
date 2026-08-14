@@ -50,7 +50,9 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     const [ticketsRes, techsRes] = await Promise.all([
       context.supabase
         .from("job_tickets")
-        .select("ticket_id, customer_id, district, job_category, job_status, updated_at, created_at")
+        .select(
+          "ticket_id, customer_id, district, job_category, job_status, updated_at, created_at",
+        )
         .order("created_at", { ascending: false }),
       context.supabase.from("technicians").select("technician_id, current_status"),
     ]);
@@ -91,7 +93,6 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       })),
     };
   });
-
 
 export const listTechnicians = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

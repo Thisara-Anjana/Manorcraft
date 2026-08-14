@@ -31,19 +31,13 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-4 py-5">
         {logo.data?.url ? (
-          <img
-            src={logo.data.url}
-            alt="Manorcraft"
-            className="h-8 max-w-[150px] object-contain"
-          />
+          <img src={logo.data.url} alt="Manorcraft" className="h-8 max-w-[150px] object-contain" />
         ) : (
           <span className="font-display text-xl tracking-wide text-sidebar-foreground">
             Manorcraft
           </span>
         )}
-        <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-          Admin
-        </span>
+        <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Admin</span>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

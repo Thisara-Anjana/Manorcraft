@@ -13,7 +13,13 @@ type Portal = "admin" | "technician";
  * Client-side role gate. Signed-in users without the required role are sent to
  * the portal they do have access to (falling back to the customer dashboard).
  */
-export function PortalGuard({ require: required, children }: { require: Portal; children: ReactNode }) {
+export function PortalGuard({
+  require: required,
+  children,
+}: {
+  require: Portal;
+  children: ReactNode;
+}) {
   const navigate = useNavigate();
   const fetchAccess = useServerFn(getPortalAccess);
   const { data, isPending, isError } = useQuery({

@@ -6,9 +6,15 @@ export const Route = createFileRoute("/_authenticated/admin/technicians")({
   head: () => ({
     meta: [
       { title: "Technicians | Manorcraft Admin" },
-      { name: "description", content: "Manage Manorcraft's verified technician roster, skills and availability." },
+      {
+        name: "description",
+        content: "Manage Manorcraft's verified technician roster, skills and availability.",
+      },
       { property: "og:title", content: "Technicians | Manorcraft Admin" },
-      { property: "og:description", content: "Manage Manorcraft's verified technician roster, skills and availability." },
+      {
+        property: "og:description",
+        content: "Manage Manorcraft's verified technician roster, skills and availability.",
+      },
     ],
   }),
   component: () => (

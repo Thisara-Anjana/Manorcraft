@@ -35,7 +35,10 @@ export const getTicketHistory = createServerFn({ method: "GET" })
     if (actorIds.length > 0) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const [{ data: customers }, { data: technicians }] = await Promise.all([
-        supabaseAdmin.from("customers").select("customer_id, full_name").in("customer_id", actorIds),
+        supabaseAdmin
+          .from("customers")
+          .select("customer_id, full_name")
+          .in("customer_id", actorIds),
         supabaseAdmin
           .from("technicians")
           .select("technician_id, full_name")
