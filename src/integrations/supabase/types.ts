@@ -89,6 +89,8 @@ export type Database = {
           district: string
           job_category: Database["public"]["Enums"]["job_category"]
           job_status: Database["public"]["Enums"]["job_status"]
+          latitude: number | null
+          longitude: number | null
           scheduled_date: string | null
           technician_id: string | null
           ticket_id: string
@@ -103,6 +105,8 @@ export type Database = {
           district: string
           job_category: Database["public"]["Enums"]["job_category"]
           job_status?: Database["public"]["Enums"]["job_status"]
+          latitude?: number | null
+          longitude?: number | null
           scheduled_date?: string | null
           technician_id?: string | null
           ticket_id?: string
@@ -117,6 +121,8 @@ export type Database = {
           district?: string
           job_category?: Database["public"]["Enums"]["job_category"]
           job_status?: Database["public"]["Enums"]["job_status"]
+          latitude?: number | null
+          longitude?: number | null
           scheduled_date?: string | null
           technician_id?: string | null
           ticket_id?: string
