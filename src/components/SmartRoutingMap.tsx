@@ -230,9 +230,15 @@ export default function SmartRoutingMap() {
               {routeLine.length > 1 && (
                 <Polyline
                   positions={routeLine}
-                  pathOptions={{ color: "#c9a227", weight: 4, opacity: 0.85, dashArray: "8 10" }}
+                  pathOptions={{
+                    color: "#c9a227",
+                    weight: tripQuery.data ? 5 : 4,
+                    opacity: 0.9,
+                    ...(tripQuery.data ? {} : { dashArray: "8 10" }),
+                  }}
                 />
               )}
+
               {visible.map(({ ticket, position }) => (
                 <Marker
                   key={ticket.ticket_id}
