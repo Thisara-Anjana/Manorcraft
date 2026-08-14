@@ -11,13 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/book'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminDispatchRouteImport } from './routes/admin.dispatch'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminTechniciansRouteImport } from './routes/admin.technicians'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminDispatchRouteImport } from './routes/_authenticated/admin.dispatch'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminTechniciansRouteImport } from './routes/_authenticated/admin.technicians'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,79 +28,82 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBookRoute = AuthenticatedBookRouteImport.update({
   id: '/book',
   path: '/book',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AdminDispatchRoute = AdminDispatchRouteImport.update({
-  id: '/dispatch',
-  path: '/dispatch',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTechniciansRoute = AdminTechniciansRouteImport.update({
-  id: '/technicians',
-  path: '/technicians',
-  getParentRoute: () => AdminRoute,
-} as any)
+const AuthenticatedAdminDispatchRoute =
+  AuthenticatedAdminDispatchRouteImport.update({
+    id: '/dispatch',
+    path: '/dispatch',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminTechniciansRoute =
+  AuthenticatedAdminTechniciansRouteImport.update({
+    id: '/technicians',
+    path: '/technicians',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/book': typeof AuthenticatedBookRoute
-  '/admin/dispatch': typeof AdminDispatchRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/technicians': typeof AdminTechniciansRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/book': typeof AuthenticatedBookRoute
-  '/admin/dispatch': typeof AdminDispatchRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/technicians': typeof AdminTechniciansRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/book': typeof AuthenticatedBookRoute
-  '/admin/dispatch': typeof AdminDispatchRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/technicians': typeof AdminTechniciansRoute
-  '/admin/': typeof AdminIndexRoute
+  '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/technicians': typeof AuthenticatedAdminTechniciansRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/auth'
+    | '/admin'
     | '/book'
     | '/admin/dispatch'
     | '/admin/settings'
@@ -119,19 +122,18 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/admin'
     | '/auth'
+    | '/_authenticated/admin'
     | '/_authenticated/book'
-    | '/admin/dispatch'
-    | '/admin/settings'
-    | '/admin/technicians'
-    | '/admin/'
+    | '/_authenticated/admin/dispatch'
+    | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/technicians'
+    | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
 }
 
@@ -151,19 +153,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/book': {
       id: '/_authenticated/book'
@@ -172,68 +174,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBookRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/': {
-      id: '/admin/'
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
       path: '/'
       fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/admin/dispatch': {
-      id: '/admin/dispatch'
+    '/_authenticated/admin/dispatch': {
+      id: '/_authenticated/admin/dispatch'
       path: '/dispatch'
       fullPath: '/admin/dispatch'
-      preLoaderRoute: typeof AdminDispatchRouteImport
-      parentRoute: typeof AdminRoute
+      preLoaderRoute: typeof AuthenticatedAdminDispatchRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/admin/settings': {
-      id: '/admin/settings'
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
       path: '/settings'
       fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/admin/technicians': {
-      id: '/admin/technicians'
+    '/_authenticated/admin/technicians': {
+      id: '/_authenticated/admin/technicians'
       path: '/technicians'
       fullPath: '/admin/technicians'
-      preLoaderRoute: typeof AdminTechniciansRouteImport
-      parentRoute: typeof AdminRoute
+      preLoaderRoute: typeof AuthenticatedAdminTechniciansRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDispatchRoute: typeof AuthenticatedAdminDispatchRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminTechniciansRoute: typeof AuthenticatedAdminTechniciansRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDispatchRoute: AuthenticatedAdminDispatchRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminTechniciansRoute: AuthenticatedAdminTechniciansRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookRoute: typeof AuthenticatedBookRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookRoute: AuthenticatedBookRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface AdminRouteChildren {
-  AdminDispatchRoute: typeof AdminDispatchRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminTechniciansRoute: typeof AdminTechniciansRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminDispatchRoute: AdminDispatchRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminTechniciansRoute: AdminTechniciansRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport

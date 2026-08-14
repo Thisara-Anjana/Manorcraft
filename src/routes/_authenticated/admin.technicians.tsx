@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export const Route = createFileRoute("/admin/technicians")({
+export const Route = createFileRoute("/_authenticated/admin/technicians")({
   head: () => ({
     meta: [
       { title: "Technicians | Manorcraft Admin" },
