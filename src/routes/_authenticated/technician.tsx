@@ -85,12 +85,19 @@ function TechnicianPortal() {
     onError: (error: Error) => toast.error("Could not update job", { description: error.message }),
   });
 
+  // Role protection: non-technicians are redirected to the portal they can use.
+  useEffect(() => {
+    if (access.isPending || !access.data || access.data.isTechnician) return;
+    navigate({ to: "/dashboard", replace: true });
+  }, [access.isPending, access.data, navigate]);
+
   const signOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/technician-login", replace: true });
   };
+
 
   const list = jobs.data ?? [];
   const active = list.filter((j) => j.job_status !== "Completed");
