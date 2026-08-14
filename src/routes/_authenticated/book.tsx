@@ -9,13 +9,16 @@ import {
   ChevronRight,
   ShieldCheck,
   Clock,
+  Loader2,
   MapPin,
   Wrench,
   PartyPopper,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { supabase } from "@/integrations/supabase/client";
 import { SiteNav } from "@/components/SiteNav";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
