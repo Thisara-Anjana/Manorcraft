@@ -25,6 +25,7 @@ import {
 const items = [
   { title: "Overview", url: "/admin", icon: LayoutDashboard },
   { title: "Dispatch Board", url: "/admin/dispatch", icon: ClipboardList },
+  { title: "Map View", url: "/admin/map", icon: MapIcon },
   { title: "Technicians", url: "/admin/technicians", icon: Users },
   { title: "Admins", url: "/admin/admins", icon: ShieldCheck },
   { title: "Settings", url: "/admin/settings", icon: Settings },
