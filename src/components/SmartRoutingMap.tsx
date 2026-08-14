@@ -56,11 +56,62 @@ function distance(a: [number, number], b: [number, number]) {
   return Math.hypot(a[0] - b[0], a[1] - b[1]);
 }
 
-/** Nearest-neighbour ordering, used as a fallback when OSRM is unavailable. */
+/** Total path length of an open route starting at the depot. */
+function routeLength<T extends { position: [number, number] }>(
+  stops: T[],
+  depot: [number, number],
+) {
+  let total = 0;
+  let cursor = depot;
+  for (const stop of stops) {
+    total += distance(cursor, stop.position);
+    cursor = stop.position;
+  }
+  return total;
+}
+
+/**
+ * 2-opt refinement: repeatedly reverse a segment when doing so shortens the
+ * path, which removes the zig-zags a greedy nearest-neighbour pass leaves behind.
+ */
+function twoOpt<T extends { position: [number, number] }>(
+  stops: T[],
+  depot: [number, number],
+): T[] {
+  if (stops.length < 4) return stops;
+  let best = [...stops];
+  let bestLength = routeLength(best, depot);
+  let improved = true;
+  let guard = 0;
+
+  while (improved && guard < 50) {
+    improved = false;
+    guard += 1;
+    for (let i = 0; i < best.length - 1; i += 1) {
+      for (let k = i + 1; k < best.length; k += 1) {
+        const candidate = [
+          ...best.slice(0, i),
+          ...best.slice(i, k + 1).reverse(),
+          ...best.slice(k + 1),
+        ];
+        const length = routeLength(candidate, depot);
+        if (length < bestLength - 1e-9) {
+          best = candidate;
+          bestLength = length;
+          improved = true;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+/** Nearest-neighbour ordering plus 2-opt, used as a fallback when OSRM is unavailable. */
 function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[] {
   if (stops.length < 2) return stops;
+  const depot: [number, number] = DISTRICT_COORDS["colombo"] ?? SRI_LANKA_CENTER;
   const remaining = [...stops];
-  let cursor: [number, number] = DISTRICT_COORDS["colombo"] ?? SRI_LANKA_CENTER;
+  let cursor: [number, number] = depot;
   const ordered: T[] = [];
 
   while (remaining.length > 0) {
@@ -78,8 +129,9 @@ function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[
     ordered.push(next);
     cursor = next.position;
   }
-  return ordered;
+  return twoOpt(ordered, depot);
 }
+
 
 type OsrmTrip = {
   order: number[];
