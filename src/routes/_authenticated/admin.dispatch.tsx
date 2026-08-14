@@ -92,7 +92,11 @@ function DispatchBoard() {
         </CardHeader>
         <CardContent className="px-0 sm:px-6">
           {tickets.isPending ? (
-            <p className="px-6 text-sm text-muted-foreground">Loading tickets…</p>
+            <div className="space-y-3 px-6">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
           ) : tickets.isError ? (
             <p className="px-6 text-sm text-destructive">
               {(tickets.error as Error).message}
