@@ -80,6 +80,7 @@ function TechnicianPortal() {
     onSuccess: (_res, vars) => {
       toast.success(vars.status === "Completed" ? "Job completed" : "Job started");
       queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
     },
     onError: (error: Error) => toast.error("Could not update job", { description: error.message }),
   });

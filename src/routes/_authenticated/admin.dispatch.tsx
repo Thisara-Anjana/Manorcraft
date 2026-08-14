@@ -72,6 +72,7 @@ function DispatchBoard() {
       setActiveTicket(null);
       queryClient.invalidateQueries({ queryKey: ["tickets"] });
       queryClient.invalidateQueries({ queryKey: ["technicians"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
