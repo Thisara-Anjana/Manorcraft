@@ -378,10 +378,13 @@ export default function SmartRoutingMap() {
 
           {selectedTech !== "all" && route.length > 1 && (
             <p className="text-xs text-muted-foreground">
-              Route optimised with nearest-neighbour sequencing from Colombo for{" "}
+              {tripQuery.data
+                ? "Street-level driving route optimised by OSRM, starting from Colombo for "
+                : "Estimated sequencing from Colombo for "}
               {techName(selectedTech) ?? "this technician"}.
             </p>
           )}
+
           <Button
             variant="outline"
             className="w-full"
