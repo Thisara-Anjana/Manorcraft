@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/book'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTechnicianRouteImport } from './routes/_authenticated/technician'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
@@ -49,6 +50,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedBookRoute = AuthenticatedBookRouteImport.update({
   id: '/book',
   path: '/book',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTechnicianRoute = AuthenticatedTechnicianRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/technician-login': typeof TechnicianLoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/book': typeof AuthenticatedBookRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/book': typeof AuthenticatedBookRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/technician': typeof AuthenticatedTechnicianRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/technician-login': typeof TechnicianLoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/book': typeof AuthenticatedBookRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/technician': typeof AuthenticatedTechnicianRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/technician-login'
     | '/admin'
     | '/book'
+    | '/dashboard'
     | '/technician'
     | '/admin/admins'
     | '/admin/dispatch'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/technician-login'
     | '/book'
+    | '/dashboard'
     | '/technician'
     | '/admin/admins'
     | '/admin/dispatch'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/technician-login'
     | '/_authenticated/admin'
     | '/_authenticated/book'
+    | '/_authenticated/dashboard'
     | '/_authenticated/technician'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/dispatch'
@@ -217,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/book'
       fullPath: '/book'
       preLoaderRoute: typeof AuthenticatedBookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/technician': {
@@ -286,12 +305,14 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedBookRoute: typeof AuthenticatedBookRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTechnicianRoute: typeof AuthenticatedTechnicianRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedBookRoute: AuthenticatedBookRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTechnicianRoute: AuthenticatedTechnicianRoute,
 }
 

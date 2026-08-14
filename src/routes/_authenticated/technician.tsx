@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -85,12 +85,19 @@ function TechnicianPortal() {
     onError: (error: Error) => toast.error("Could not update job", { description: error.message }),
   });
 
+  // Role protection: non-technicians are redirected to the portal they can use.
+  useEffect(() => {
+    if (access.isPending || !access.data || access.data.isTechnician) return;
+    navigate({ to: "/dashboard", replace: true });
+  }, [access.isPending, access.data, navigate]);
+
   const signOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/technician-login", replace: true });
   };
+
 
   const list = jobs.data ?? [];
   const active = list.filter((j) => j.job_status !== "Completed");
@@ -125,10 +132,11 @@ function TechnicianPortal() {
           <div className="rounded-sm border border-border/70 bg-background p-8 text-center">
             <h1 className="font-display text-2xl">Field access only</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              This portal is reserved for Manorcraft technicians. Ask a branch manager to register
-              your account as a technician.
+              This portal is reserved for Manorcraft technicians — redirecting you to your
+              dashboard…
             </p>
           </div>
+
         ) : (
           <>
             <span className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
