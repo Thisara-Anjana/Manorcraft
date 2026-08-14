@@ -14,16 +14,165 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      branches: {
+        Row: {
+          branch_id: string
+          created_at: string
+          district_name: string
+          manager_name: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string
+          created_at?: string
+          district_name: string
+          manager_name: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string
+          district_name?: string
+          manager_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          created_at: string
+          customer_id: string
+          full_name: string
+          phone_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          full_name: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          full_name?: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      job_tickets: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer_id: string
+          description: string
+          district: string
+          job_category: Database["public"]["Enums"]["job_category"]
+          job_status: Database["public"]["Enums"]["job_status"]
+          scheduled_date: string | null
+          technician_id: string | null
+          ticket_id: string
+          time_slot: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer_id: string
+          description: string
+          district: string
+          job_category: Database["public"]["Enums"]["job_category"]
+          job_status?: Database["public"]["Enums"]["job_status"]
+          scheduled_date?: string | null
+          technician_id?: string | null
+          ticket_id?: string
+          time_slot?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer_id?: string
+          description?: string
+          district?: string
+          job_category?: Database["public"]["Enums"]["job_category"]
+          job_status?: Database["public"]["Enums"]["job_status"]
+          scheduled_date?: string | null
+          technician_id?: string | null
+          ticket_id?: string
+          time_slot?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      technicians: {
+        Row: {
+          created_at: string
+          current_status: Database["public"]["Enums"]["tech_status"]
+          full_name: string
+          primary_skill: Database["public"]["Enums"]["job_category"]
+          technician_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_status?: Database["public"]["Enums"]["tech_status"]
+          full_name: string
+          primary_skill: Database["public"]["Enums"]["job_category"]
+          technician_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_status?: Database["public"]["Enums"]["tech_status"]
+          full_name?: string
+          primary_skill?: Database["public"]["Enums"]["job_category"]
+          technician_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "technician" | "customer"
+      job_category: "Plumbing" | "Electrical" | "Masonry" | "AC Repair"
+      job_status: "Pending" | "Assigned" | "In Progress" | "Completed"
+      tech_status: "Available" | "On Job" | "Off Duty"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +299,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "technician", "customer"],
+      job_category: ["Plumbing", "Electrical", "Masonry", "AC Repair"],
+      job_status: ["Pending", "Assigned", "In Progress", "Completed"],
+      tech_status: ["Available", "On Job", "Off Duty"],
+    },
   },
 } as const

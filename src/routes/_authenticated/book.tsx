@@ -9,13 +9,16 @@ import {
   ChevronRight,
   ShieldCheck,
   Clock,
+  Loader2,
   MapPin,
   Wrench,
   PartyPopper,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { supabase } from "@/integrations/supabase/client";
 import { SiteNav } from "@/components/SiteNav";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
@@ -31,7 +34,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/book")({
+export const Route = createFileRoute("/_authenticated/book")({
   head: () => ({
     meta: [
       { title: "Book a Service | Manorcraft" },
@@ -136,6 +139,8 @@ function BookPage() {
   const [form, setForm] = useState<FormState>(initialState);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState(false);
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -162,13 +167,47 @@ function BookPage() {
     setStep((s) => Math.min(s + 1, steps.length - 1));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!validateStep()) return;
+    setSubmitting(true);
+
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) {
+      setSubmitting(false);
+      toast.error("Please sign in again to complete your booking.");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("job_tickets")
+      .insert({
+        customer_id: userId,
+        district: form.district,
+        address: form.address.trim(),
+        job_category: form.service as "Plumbing" | "Electrical" | "Masonry" | "AC Repair",
+        job_status: "Pending",
+        description: form.issue.trim(),
+        scheduled_date: form.date ? format(form.date, "yyyy-MM-dd") : null,
+        time_slot: form.slot,
+      })
+      .select("ticket_id")
+      .single();
+
+    setSubmitting(false);
+
+    if (error) {
+      toast.error("Could not create your booking", { description: error.message });
+      return;
+    }
+
+    setTicketId(data.ticket_id);
     setConfirmed(true);
     toast.success("Booking confirmed", {
-      description: `A Manorcraft technician will contact you shortly.`,
+      description: "A Manorcraft technician will contact you shortly.",
     });
   };
+
 
   return (
     <div className="min-h-screen bg-secondary/40">
@@ -198,6 +237,11 @@ function BookPage() {
               {form.service} in {form.district} on{" "}
               {form.date ? format(form.date, "PPP") : ""} · {form.slot}
             </p>
+            {ticketId && (
+              <p className="mt-2 text-xs uppercase tracking-[0.16em] text-brass">
+                Ticket #{ticketId.slice(0, 8)}
+              </p>
+            )}
             <div className="mt-8 flex justify-center">
               <Button
                 variant="brass"
@@ -205,9 +249,11 @@ function BookPage() {
                 onClick={() => {
                   setForm(initialState);
                   setStep(0);
+                  setTicketId(null);
                   setConfirmed(false);
                 }}
               >
+
                 Book another service
               </Button>
             </div>
@@ -373,9 +419,10 @@ function BookPage() {
                   Next <ChevronRight />
                 </Button>
               ) : (
-                <Button variant="brass" size="xl" onClick={handleConfirm}>
-                  Confirm Booking
+                <Button variant="brass" size="xl" onClick={handleConfirm} disabled={submitting}>
+                  {submitting && <Loader2 className="animate-spin" />} Confirm Booking
                 </Button>
+
               )}
             </div>
           </section>
