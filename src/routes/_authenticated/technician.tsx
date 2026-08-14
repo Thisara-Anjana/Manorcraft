@@ -150,7 +150,17 @@ function TechnicianPortal() {
             </p>
 
             {jobs.isPending ? (
-              <p className="mt-8 text-sm text-muted-foreground">Loading your jobs…</p>
+              <div className="mt-8 space-y-5">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="rounded-sm border border-border/70 bg-background p-5">
+                    <Skeleton className="h-6 w-40" />
+                    <Skeleton className="mt-3 h-4 w-28" />
+                    <Skeleton className="mt-5 h-4 w-full" />
+                    <Skeleton className="mt-3 h-4 w-3/4" />
+                    <Skeleton className="mt-5 h-14 w-full" />
+                  </div>
+                ))}
+              </div>
             ) : list.length === 0 ? (
               <div className="mt-8 rounded-sm border border-dashed border-border bg-background p-10 text-center">
                 <p className="font-display text-xl">No jobs assigned yet</p>
