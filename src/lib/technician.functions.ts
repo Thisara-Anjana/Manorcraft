@@ -227,10 +227,10 @@ export const updateJobStatus = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.status === "COMPLETED" && data.finalPrice !== undefined) {
-      patch["final_price"] = data.finalPrice;
-    }
+    const patch =
+      data.status === "COMPLETED" && data.finalPrice !== undefined
+        ? { status: data.status, final_price: data.finalPrice }
+        : { status: data.status };
 
     const { data: updated, error } = await context.supabase
       .from("bookings")
