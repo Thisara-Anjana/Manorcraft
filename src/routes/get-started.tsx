@@ -27,15 +27,15 @@ export const Route = createFileRoute("/get-started")({
 const cards = [
   {
     icon: Home,
-    title: "I'm a Customer",
+    title: "Customer",
     body: "Book trusted professionals for your home.",
     cta: "Continue as Customer",
     to: "/auth" as const,
   },
   {
     icon: HardHat,
-    title: "I'm a Technician",
-    body: "Find jobs, manage services and grow your business.",
+    title: "Professional",
+    body: "Find jobs and manage your services.",
     cta: "Continue as Technician",
     to: "/technician-login" as const,
   },
@@ -52,8 +52,8 @@ function ChooseExperience() {
           >
             Manorcraft
           </Link>
-          <p className="mt-4 text-sm uppercase tracking-[0.22em] text-brass">
-            Elite Home Maintenance &amp; Craftsmanship
+          <p className="mt-5 font-display text-3xl font-light text-primary-foreground/90">
+            How can we help you today?
           </p>
         </div>
 
@@ -85,7 +85,7 @@ function ChooseExperience() {
             to="/admin-login"
             className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-primary-foreground/65 transition-colors hover:text-brass"
           >
-            <ShieldCheck className="h-3.5 w-3.5" /> Admin Portal
+            <ShieldCheck className="h-3.5 w-3.5" /> Sign in as Admin
           </Link>
         </div>
       </div>
