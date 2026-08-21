@@ -24,7 +24,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TicketHistory } from "@/components/TicketHistory";
-import { assignTechnician, listTechnicians, listTickets } from "@/lib/dispatch.functions";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/booking-status";
+import {
+  assignTechnician,
+  confirmBooking,
+  listTechnicians,
+  listTickets,
+} from "@/lib/dispatch.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/dispatch")({
   head: () => ({
@@ -47,17 +53,11 @@ export const Route = createFileRoute("/_authenticated/admin/dispatch")({
 type TicketRow = Awaited<ReturnType<typeof listTickets>>[number];
 type TechnicianRow = Awaited<ReturnType<typeof listTechnicians>>[number];
 
-const statusStyles: Record<string, string> = {
-  Pending: "border-transparent bg-muted text-muted-foreground",
-  Assigned: "border-brass/50 bg-brass/15 text-accent-foreground",
-  "In Progress": "border-transparent bg-primary text-primary-foreground",
-  Completed: "border-transparent bg-emerald-600/15 text-emerald-700",
-};
-
 function DispatchBoard() {
   const fetchTickets = useServerFn(listTickets);
   const fetchTechs = useServerFn(listTechnicians);
   const assign = useServerFn(assignTechnician);
+  const confirmFn = useServerFn(confirmBooking);
   const queryClient = useQueryClient();
   const [activeTicket, setActiveTicket] = useState<string | null>(null);
   const [historyTicket, setHistoryTicket] = useState<string | null>(null);
@@ -78,7 +78,17 @@ function DispatchBoard() {
       queryClient.invalidateQueries({ queryKey: ["technicians"] });
       queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error("Could not assign technician", { description: e.message }),
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: (ticketId: string) => confirmFn({ data: { ticketId } }),
+    onSuccess: () => {
+      toast.success("Booking confirmed");
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+    },
+    onError: (e: Error) => toast.error("Could not confirm booking", { description: e.message }),
   });
 
   return (
@@ -110,7 +120,7 @@ function DispatchBoard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Ticket ID</TableHead>
+                    <TableHead>Booking</TableHead>
                     <TableHead>District</TableHead>
                     <TableHead>Job Category</TableHead>
                     <TableHead>Description</TableHead>
@@ -121,16 +131,16 @@ function DispatchBoard() {
                 <TableBody>
                   {tickets.data.map((t: TicketRow) => (
                     <TableRow key={t.ticket_id}>
-                      <TableCell className="font-medium uppercase">
-                        {t.ticket_id.slice(0, 8)}
-                      </TableCell>
+                      <TableCell className="font-medium">{t.booking_code}</TableCell>
                       <TableCell>{t.district}</TableCell>
                       <TableCell>{t.job_category}</TableCell>
                       <TableCell className="max-w-xs truncate text-muted-foreground">
                         {t.description}
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusStyles[t.job_status] ?? ""}>{t.job_status}</Badge>
+                        <Badge className={STATUS_BADGE[t.job_status] ?? ""}>
+                          {STATUS_LABEL[t.job_status] ?? t.job_status}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -141,10 +151,20 @@ function DispatchBoard() {
                           >
                             History
                           </Button>
+                          {t.job_status === "Pending" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={confirmMutation.isPending}
+                              onClick={() => confirmMutation.mutate(t.ticket_id)}
+                            >
+                              Confirm
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outlineBrass"
-                            disabled={t.job_status === "Completed"}
+                            disabled={["Completed", "Cancelled"].includes(t.job_status)}
                             onClick={() => setActiveTicket(t.ticket_id)}
                           >
                             Assign Tech
