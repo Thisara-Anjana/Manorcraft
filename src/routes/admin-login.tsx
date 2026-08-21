@@ -6,7 +6,9 @@ import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
 import { resolvePortalHome } from "@/lib/auth-routing";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { DemoAccess } from "@/components/auth/DemoAccess";
 import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +69,7 @@ function AdminLogin() {
     });
     if (error) {
       setLoading(false);
-      toast.error("Sign in failed", { description: error.message });
+      setErrors({ form: friendlyAuthError(error, "We couldn't sign you in. Please try again.") });
       return;
     }
     const home = await resolvePortalHome();
@@ -77,6 +79,7 @@ function AdminLogin() {
     }
     navigate({ to: home, replace: true });
   };
+
 
   return (
     <AuthLayout
@@ -88,10 +91,13 @@ function AdminLogin() {
       <span className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.28em] text-muted-foreground">
         <Lock className="size-4 text-brass" /> Administration
       </span>
-      <h1 className="mt-3 font-display text-4xl font-light text-foreground">Secure sign in</h1>
+      <h1 className="mt-3 font-display text-3xl font-medium tracking-tight text-foreground">
+        Manorcraft Admin Portal
+      </h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Access is verified against your Manorcraft administrator role.
+        Manage operations, professionals and customers.
       </p>
+
 
       <form onSubmit={submit} className="mt-9 space-y-5">
         <div className="space-y-2">
@@ -133,10 +139,23 @@ function AdminLogin() {
         <div className="flex justify-end">
           <ForgotPasswordDialog defaultEmail={form.email} />
         </div>
+        {errors["form"] && (
+          <p className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+            {errors["form"]}
+          </p>
+        )}
         <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
           {loading && <Loader2 className="animate-spin" />} Secure Login
         </Button>
       </form>
+
+      <DemoAccess
+        roles={["admin"]}
+        onPick={(email, password) => {
+          setForm({ email, password });
+          setErrors({});
+        }}
+      />
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
         <Link to="/get-started" className="uppercase tracking-[0.16em] hover:text-brass">
@@ -146,3 +165,4 @@ function AdminLogin() {
     </AuthLayout>
   );
 }
+

@@ -6,7 +6,9 @@ import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
 import { resolvePortalHome } from "@/lib/auth-routing";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { DemoAccess } from "@/components/auth/DemoAccess";
 import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -76,7 +78,7 @@ function TechnicianLogin() {
     });
     if (error) {
       setLoading(false);
-      toast.error("Could not sign in", { description: error.message });
+      setErrors({ form: friendlyAuthError(error, "We couldn't sign you in. Please try again.") });
       return;
     }
     if (remember) window.localStorage.setItem(REMEMBER_KEY, form.email.trim());
@@ -158,6 +160,12 @@ function TechnicianLogin() {
           <ForgotPasswordDialog defaultEmail={form.email} />
         </div>
 
+        {errors["form"] && (
+          <p className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+            {errors["form"]}
+          </p>
+        )}
+
         <Button
           type="submit"
           variant="brass"
@@ -168,16 +176,24 @@ function TechnicianLogin() {
           {loading && <Loader2 className="animate-spin" />} Sign In
         </Button>
         <Button asChild variant="outlineBrass" size="xl" className="w-full">
-          <Link to="/for-professionals">Apply as a Technician</Link>
+          <Link to="/technician-apply">Apply as a Technician</Link>
         </Button>
       </form>
 
-      <div className="mt-10 rounded-sm border border-border bg-secondary/40 p-5 text-center">
+      <DemoAccess
+        roles={["technician"]}
+        onPick={(email, password) => {
+          setForm({ email, password });
+          setErrors({});
+        }}
+      />
+
+      <div className="mt-8 rounded-sm border border-border bg-secondary/40 p-5 text-center">
         <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-          Looking for home services?
+          Looking for a service?
         </p>
         <Button asChild variant="ghost" className="mt-2 w-full">
-          <Link to="/auth">Customer Login</Link>
+          <Link to="/auth">Customer Login →</Link>
         </Button>
       </div>
     </AuthLayout>
