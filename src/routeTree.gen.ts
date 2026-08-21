@@ -21,6 +21,7 @@ import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/b
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTechnicianRouteImport } from './routes/_authenticated/technician'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminAdminsRouteImport } from './routes/_authenticated/admin.admins'
 import { Route as AuthenticatedAdminDispatchRouteImport } from './routes/_authenticated/admin.dispatch'
@@ -87,6 +88,11 @@ const ServicesIndexRoute = ServicesIndexRouteImport.update({
   path: '/services/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesSlugRoute = ServicesSlugRouteImport.update({
+  id: '/services/$slug',
+  path: '/services/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/book': typeof AuthenticatedBookRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/technician': typeof AuthenticatedTechnicianRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/book': typeof AuthenticatedBookRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/technician': typeof AuthenticatedTechnicianRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/services': typeof ServicesIndexRoute
   '/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/_authenticated/book': typeof AuthenticatedBookRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/technician': typeof AuthenticatedTechnicianRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
   '/_authenticated/admin/admins': typeof AuthenticatedAdminAdminsRoute
   '/_authenticated/admin/dispatch': typeof AuthenticatedAdminDispatchRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/dashboard'
     | '/technician'
+    | '/services/$slug'
     | '/services/'
     | '/admin/admins'
     | '/admin/dispatch'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/book'
     | '/dashboard'
     | '/technician'
+    | '/services/$slug'
     | '/services'
     | '/admin/admins'
     | '/admin/dispatch'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/_authenticated/book'
     | '/_authenticated/dashboard'
     | '/_authenticated/technician'
+    | '/services/$slug'
     | '/services/'
     | '/_authenticated/admin/admins'
     | '/_authenticated/admin/dispatch'
@@ -248,6 +260,7 @@ export interface RootRouteChildren {
   GetStartedRoute: typeof GetStartedRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TechnicianLoginRoute: typeof TechnicianLoginRoute
+  ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
 }
 
@@ -335,6 +348,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services/'
       preLoaderRoute: typeof ServicesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/$slug': {
+      id: '/services/$slug'
+      path: '/services/$slug'
+      fullPath: '/services/$slug'
+      preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -428,6 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   GetStartedRoute: GetStartedRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TechnicianLoginRoute: TechnicianLoginRoute,
+  ServicesSlugRoute: ServicesSlugRoute,
   ServicesIndexRoute: ServicesIndexRoute,
 }
 export const routeTree = rootRouteImport
