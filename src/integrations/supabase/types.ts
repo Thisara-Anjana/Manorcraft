@@ -178,6 +178,98 @@ export type Database = {
           },
         ]
       }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          rating: number
+          review_id: string
+          technician_id: string | null
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          rating: number
+          review_id?: string
+          technician_id?: string | null
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          rating?: number
+          review_id?: string
+          technician_id?: string | null
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: true
+            referencedRelation: "job_tickets"
+            referencedColumns: ["ticket_id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category: Database["public"]["Enums"]["job_category"]
+          common_problems: string[]
+          created_at: string
+          description: string
+          display_order: number
+          estimated_duration_minutes: number
+          hourly_rate: number
+          is_active: boolean
+          name: string
+          service_id: string
+          slug: string
+          starting_price: number
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["job_category"]
+          common_problems?: string[]
+          created_at?: string
+          description?: string
+          display_order?: number
+          estimated_duration_minutes?: number
+          hourly_rate?: number
+          is_active?: boolean
+          name: string
+          service_id?: string
+          slug: string
+          starting_price?: number
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["job_category"]
+          common_problems?: string[]
+          created_at?: string
+          description?: string
+          display_order?: number
+          estimated_duration_minutes?: number
+          hourly_rate?: number
+          is_active?: boolean
+          name?: string
+          service_id?: string
+          slug?: string
+          starting_price?: number
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       technicians: {
         Row: {
           created_at: string
