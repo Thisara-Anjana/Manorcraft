@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/booking-status";
 import { getAdminOverview } from "@/lib/dispatch.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -36,13 +37,6 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   }),
   component: AdminOverview,
 });
-
-const statusStyles: Record<string, string> = {
-  Pending: "border-transparent bg-muted text-muted-foreground",
-  Assigned: "border-brass/50 bg-brass/15 text-accent-foreground",
-  "In Progress": "border-transparent bg-primary text-primary-foreground",
-  Completed: "border-transparent bg-emerald-600/15 text-emerald-700",
-};
 
 function AdminOverview() {
   const fetchOverview = useServerFn(getAdminOverview);
@@ -152,7 +146,9 @@ function AdminOverview() {
                         <TableCell>{t.district}</TableCell>
                         <TableCell>{t.job_category}</TableCell>
                         <TableCell>
-                          <Badge className={statusStyles[t.job_status] ?? ""}>{t.job_status}</Badge>
+                          <Badge className={STATUS_BADGE[t.job_status] ?? ""}>
+                            {STATUS_LABEL[t.job_status] ?? t.job_status}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button

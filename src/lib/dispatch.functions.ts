@@ -38,7 +38,7 @@ export const listTickets = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("job_tickets")
       .select(
-        "ticket_id, district, job_category, job_status, description, technician_id, scheduled_date, time_slot, created_at",
+        "ticket_id, booking_code, district, job_category, job_status, description, technician_id, scheduled_date, time_slot, created_at",
       )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -80,7 +80,9 @@ export const getAdminOverview = createServerFn({ method: "GET" })
 
     return {
       metrics: {
-        activeJobs: tickets.filter((t) => t.job_status !== "Completed").length,
+        activeJobs: tickets.filter(
+          (t) => !["Completed", "Cancelled"].includes(t.job_status as string),
+        ).length,
         availableTechnicians: techs.filter((t) => t.current_status === "Available").length,
         totalTechnicians: techs.length,
         completedToday: tickets.filter(
@@ -130,6 +132,21 @@ export const assignTechnician = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Admin confirms a new request before dispatch. */
+export const confirmBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ ticketId: z.string().uuid() }).parse(data))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("job_tickets")
+      .update({ job_status: "Confirmed" })
+      .eq("ticket_id", data.ticketId)
+      .eq("job_status", "Pending");
+    if (error) throw new Error("We couldn't confirm this booking. Please try again.");
+    return { ok: true };
+  });
+
 export const listMapTickets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -139,7 +156,14 @@ export const listMapTickets = createServerFn({ method: "GET" })
       .select(
         "ticket_id, customer_id, district, address, job_category, job_status, description, technician_id, scheduled_date, time_slot, latitude, longitude",
       )
-      .in("job_status", ["Pending", "Assigned"])
+      .in("job_status", [
+        "Pending",
+        "Confirmed",
+        "Assigned",
+        "Accepted",
+        "On The Way",
+        "In Progress",
+      ])
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 

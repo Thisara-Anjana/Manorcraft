@@ -83,6 +83,9 @@ export type Database = {
       job_tickets: {
         Row: {
           address: string | null
+          booking_code: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
           created_at: string
           customer_id: string
           description: string
@@ -91,6 +94,7 @@ export type Database = {
           job_status: Database["public"]["Enums"]["job_status"]
           latitude: number | null
           longitude: number | null
+          reschedule_count: number
           scheduled_date: string | null
           technician_id: string | null
           ticket_id: string
@@ -99,6 +103,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          booking_code?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string
           customer_id: string
           description: string
@@ -107,6 +114,7 @@ export type Database = {
           job_status?: Database["public"]["Enums"]["job_status"]
           latitude?: number | null
           longitude?: number | null
+          reschedule_count?: number
           scheduled_date?: string | null
           technician_id?: string | null
           ticket_id?: string
@@ -115,6 +123,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          booking_code?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           created_at?: string
           customer_id?: string
           description?: string
@@ -123,6 +134,7 @@ export type Database = {
           job_status?: Database["public"]["Enums"]["job_status"]
           latitude?: number | null
           longitude?: number | null
+          reschedule_count?: number
           scheduled_date?: string | null
           technician_id?: string | null
           ticket_id?: string
@@ -230,7 +242,15 @@ export type Database = {
     Enums: {
       app_role: "admin" | "technician" | "customer"
       job_category: "Plumbing" | "Electrical" | "Masonry" | "AC Repair"
-      job_status: "Pending" | "Assigned" | "In Progress" | "Completed"
+      job_status:
+        | "Pending"
+        | "Confirmed"
+        | "Assigned"
+        | "Accepted"
+        | "On The Way"
+        | "In Progress"
+        | "Completed"
+        | "Cancelled"
       tech_status: "Available" | "On Job" | "Off Duty"
     }
     CompositeTypes: {
@@ -361,7 +381,16 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "technician", "customer"],
       job_category: ["Plumbing", "Electrical", "Masonry", "AC Repair"],
-      job_status: ["Pending", "Assigned", "In Progress", "Completed"],
+      job_status: [
+        "Pending",
+        "Confirmed",
+        "Assigned",
+        "Accepted",
+        "On The Way",
+        "In Progress",
+        "Completed",
+        "Cancelled",
+      ],
       tech_status: ["Available", "On Job", "Off Duty"],
     },
   },

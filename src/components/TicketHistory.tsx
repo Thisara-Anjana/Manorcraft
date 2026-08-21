@@ -4,12 +4,7 @@ import { History } from "lucide-react";
 
 import { getTicketHistory, type TicketHistoryEntry } from "@/lib/history.functions";
 
-const dotStyles: Record<string, string> = {
-  Pending: "bg-muted-foreground",
-  Assigned: "bg-brass",
-  "In Progress": "bg-primary",
-  Completed: "bg-emerald-600",
-};
+import { STATUS_DOT, STATUS_LABEL } from "@/lib/booking-status";
 
 function formatWhen(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -46,13 +41,13 @@ export function TicketHistory({ ticketId }: { ticketId: string }) {
         <li key={entry.history_id} className="relative">
           <span
             className={`absolute -left-[1.42rem] top-1.5 size-2.5 rounded-full ring-2 ring-background ${
-              dotStyles[entry.new_status] ?? "bg-muted-foreground"
+              STATUS_DOT[entry.new_status] ?? "bg-muted-foreground"
             }`}
           />
           <p className="text-sm font-medium text-foreground">
             {entry.old_status
-              ? `${entry.old_status} → ${entry.new_status}`
-              : `Created as ${entry.new_status}`}
+              ? `${STATUS_LABEL[entry.old_status] ?? entry.old_status} → ${STATUS_LABEL[entry.new_status] ?? entry.new_status}`
+              : `Created as ${STATUS_LABEL[entry.new_status] ?? entry.new_status}`}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {formatWhen(entry.created_at)} · {entry.actor_name}

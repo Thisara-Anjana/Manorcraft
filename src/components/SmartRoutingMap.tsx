@@ -132,7 +132,6 @@ function optimiseRoute<T extends { position: [number, number] }>(stops: T[]): T[
   return twoOpt(ordered, depot);
 }
 
-
 type OsrmTrip = {
   order: number[];
   geometry: [number, number][];
@@ -181,7 +180,6 @@ function formatDuration(minutes: number) {
   return h > 0 ? `${h} hr ${m} min` : `${m} min`;
 }
 
-
 function markerIcon(status: string, label?: number) {
   const gold = "#c9a227";
   const navy = "#0f1e3d";
@@ -204,7 +202,10 @@ export default function SmartRoutingMap() {
   const queryClient = useQueryClient();
   const [selectedTech, setSelectedTech] = useState<string>("all");
 
-  const ticketsQuery = useQuery({ queryKey: ["admin", "map-tickets"], queryFn: () => fetchTickets() });
+  const ticketsQuery = useQuery({
+    queryKey: ["admin", "map-tickets"],
+    queryFn: () => fetchTickets(),
+  });
   const techsQuery = useQuery({ queryKey: ["admin", "technicians"], queryFn: () => fetchTechs() });
 
   const assignMutation = useMutation({
@@ -263,7 +264,6 @@ export default function SmartRoutingMap() {
       ? tripQuery.data.geometry
       : route.map((stop) => stop.position);
   const numbering = new Map(route.map((stop, i) => [stop.ticket.ticket_id, i + 1]));
-
 
   if (ticketsQuery.isLoading) {
     return <Skeleton className="h-[70vh] w-full rounded-xl" />;
