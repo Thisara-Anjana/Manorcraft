@@ -152,6 +152,13 @@ export type Database = {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
+            referencedRelation: "service_reviews"
+            referencedColumns: ["service_id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
             referencedRelation: "services"
             referencedColumns: ["id"]
           },
@@ -547,7 +554,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_technicians: {
+        Row: {
+          availability: boolean | null
+          completed_jobs: number | null
+          district_name: string | null
+          experience_years: number | null
+          full_name: string | null
+          profile_id: string | null
+          rating: number | null
+          specialization: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          rating: number | null
+          review_id: string | null
+          reviewer_name: string | null
+          service_id: string | null
+          service_slug: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
