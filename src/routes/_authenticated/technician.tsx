@@ -9,8 +9,11 @@ import {
   Loader2,
   History,
   MapPin,
+  Navigation,
+  Phone,
   PlayCircle,
   User,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,8 +21,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TicketHistory } from "@/components/TicketHistory";
-import { checkIsTechnician, listMyJobs, updateJobStatus } from "@/lib/technician.functions";
+import { STATUS_BADGE, STATUS_LABEL } from "@/lib/booking-status";
+import {
+  acceptJob,
+  checkIsTechnician,
+  listMyJobs,
+  rejectJob,
+  updateJobStatus,
+} from "@/lib/technician.functions";
+
 
 export const Route = createFileRoute("/_authenticated/technician")({
   head: () => ({
