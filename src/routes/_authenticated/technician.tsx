@@ -12,6 +12,7 @@ import {
   Navigation,
   Phone,
   PlayCircle,
+  Star,
   User,
   XCircle,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,13 +34,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TicketHistory } from "@/components/TicketHistory";
-import { STATUS_BADGE, STATUS_LABEL } from "@/lib/booking-status";
+import { STATUS_BADGE, STATUS_LABEL, formatLKR, formatTime } from "@/lib/booking-status";
 import {
   acceptJob,
   checkIsTechnician,
+  getTechnicianStats,
   listMyJobs,
   rejectJob,
+  setAvailability,
   updateJobStatus,
+  type TechnicianJob,
 } from "@/lib/technician.functions";
 
 export const Route = createFileRoute("/_authenticated/technician")({
@@ -48,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/technician")({
       {
         name: "description",
         content:
-          "View your assigned Manorcraft jobs and update progress from Assigned to In Progress to Completed on any mobile device.",
+          "View your assigned Manorcraft jobs and move each visit from accepted to on the way, started and completed on any mobile device.",
       },
       { property: "og:title", content: "Technician Portal | Manorcraft Field Jobs" },
       {
@@ -62,64 +67,65 @@ export const Route = createFileRoute("/_authenticated/technician")({
   component: TechnicianPortal,
 });
 
-type Job = {
-  ticket_id: string;
-  booking_code: string;
-  customer_name: string;
-  customer_phone: string | null;
-  district: string;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  job_category: string;
-  job_status: string;
-  description: string;
-  scheduled_date: string | null;
-  time_slot: string | null;
-};
+type JobAction = "accept" | "reject" | "ON_THE_WAY" | "SERVICE_STARTED" | "COMPLETED";
 
 function TechnicianPortal() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const check = useServerFn(checkIsTechnician);
   const fetchJobs = useServerFn(listMyJobs);
+  const fetchStats = useServerFn(getTechnicianStats);
   const setStatus = useServerFn(updateJobStatus);
   const accept = useServerFn(acceptJob);
   const reject = useServerFn(rejectJob);
+  const toggleAvailability = useServerFn(setAvailability);
 
   const access = useQuery({ queryKey: ["is-technician"], queryFn: () => check({}) });
   const jobs = useQuery({
     queryKey: ["my-jobs"],
-    queryFn: () => fetchJobs({}) as Promise<Job[]>,
+    queryFn: () => fetchJobs({}),
+    enabled: !!access.data?.isTechnician,
+  });
+  const stats = useQuery({
+    queryKey: ["technician-stats"],
+    queryFn: () => fetchStats({}),
     enabled: !!access.data?.isTechnician,
   });
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-    queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+    queryClient.invalidateQueries({ queryKey: ["technician-stats"] });
+    queryClient.invalidateQueries({ queryKey: ["booking-history"] });
   };
 
   const mutation = useMutation({
-    mutationFn: (vars: {
-      ticketId: string;
-      action: "accept" | "reject" | "On The Way" | "In Progress" | "Completed";
-    }) => {
-      if (vars.action === "accept") return accept({ data: { ticketId: vars.ticketId } });
-      if (vars.action === "reject") return reject({ data: { ticketId: vars.ticketId } });
-      return setStatus({ data: { ticketId: vars.ticketId, status: vars.action } });
+    mutationFn: (vars: { bookingId: string; action: JobAction }) => {
+      if (vars.action === "accept") return accept({ data: { bookingId: vars.bookingId } });
+      if (vars.action === "reject") return reject({ data: { bookingId: vars.bookingId } });
+      return setStatus({ data: { bookingId: vars.bookingId, status: vars.action } });
     },
     onSuccess: (_res, vars) => {
-      const messages: Record<string, string> = {
+      const messages: Record<JobAction, string> = {
         accept: "Job accepted",
         reject: "Job returned to dispatch",
-        "On The Way": "Customer notified you're on the way",
-        "In Progress": "Service started",
-        Completed: "Job completed",
+        ON_THE_WAY: "Customer notified you're on the way",
+        SERVICE_STARTED: "Service started",
+        COMPLETED: "Job completed",
       };
       toast.success(messages[vars.action] ?? "Job updated");
       refresh();
     },
     onError: (error: Error) => toast.error("Could not update job", { description: error.message }),
+  });
+
+  const availabilityMutation = useMutation({
+    mutationFn: (available: boolean) => toggleAvailability({ data: { available } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["is-technician"] });
+      toast.success("Availability updated");
+    },
+    onError: (error: Error) =>
+      toast.error("Could not update availability", { description: error.message }),
   });
 
   // Role protection: non-technicians are redirected to the portal they can use.
@@ -139,8 +145,8 @@ function TechnicianPortal() {
   };
 
   const list = jobs.data ?? [];
-  const active = list.filter((j) => !["Completed", "Cancelled"].includes(j.job_status));
-  const done = list.filter((j) => ["Completed", "Cancelled"].includes(j.job_status));
+  const active = list.filter((j) => !["COMPLETED", "CANCELLED"].includes(j.status));
+  const done = list.filter((j) => ["COMPLETED", "CANCELLED"].includes(j.status));
 
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
@@ -180,14 +186,49 @@ function TechnicianPortal() {
         ) : (
           <>
             <span className="text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
-              {access.data.profile?.primary_skill ?? "Technician"}
+              {access.data.profile?.specialization ?? "Technician"}
             </span>
             <h1 className="mt-2 font-display text-3xl font-light text-foreground">
               {access.data.profile?.full_name ?? "My Jobs"}
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {active.length} active {active.length === 1 ? "job" : "jobs"} · {done.length}{" "}
-              completed
+
+            <div className="mt-4 flex items-center justify-between gap-4 rounded-sm border border-border/70 bg-background px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-foreground">Available for dispatch</p>
+                <p className="text-xs text-muted-foreground">
+                  Turn off when you're finished for the day.
+                </p>
+              </div>
+              <Switch
+                checked={!!access.data.profile?.availability}
+                disabled={availabilityMutation.isPending}
+                onCheckedChange={(v) => availabilityMutation.mutate(v)}
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Assigned", value: stats.data?.assigned ?? 0 },
+                { label: "Active", value: stats.data?.active ?? 0 },
+                { label: "Completed", value: stats.data?.completed ?? 0 },
+                { label: "Earnings", value: formatLKR(stats.data?.earnings ?? 0) },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-sm border border-border/70 bg-background px-3 py-3"
+                >
+                  <p className="text-[0.62rem] uppercase tracking-[0.18em] text-muted-foreground">
+                    {s.label}
+                  </p>
+                  <p className="mt-1 font-display text-xl text-foreground">{s.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <Star className="size-4 fill-brass text-brass" />
+              {(stats.data?.rating ?? 0).toFixed(1)} rating · {active.length} active ·{" "}
+              {done.length} closed
             </p>
 
             {jobs.isPending ? (
@@ -213,10 +254,10 @@ function TechnicianPortal() {
               <div className="mt-8 space-y-5">
                 {[...active, ...done].map((job) => (
                   <JobCard
-                    key={job.ticket_id}
+                    key={job.id}
                     job={job}
-                    pending={mutation.isPending && mutation.variables?.ticketId === job.ticket_id}
-                    onAction={(action) => mutation.mutate({ ticketId: job.ticket_id, action })}
+                    pending={mutation.isPending && mutation.variables?.bookingId === job.id}
+                    onAction={(action) => mutation.mutate({ bookingId: job.id, action })}
                   />
                 ))}
               </div>
@@ -228,14 +269,12 @@ function TechnicianPortal() {
   );
 }
 
-type JobAction = "accept" | "reject" | "On The Way" | "In Progress" | "Completed";
-
 function JobCard({
   job,
   pending,
   onAction,
 }: {
-  job: Job;
+  job: TechnicianJob;
   pending: boolean;
   onAction: (action: JobAction) => void;
 }) {
@@ -244,26 +283,26 @@ function JobCard({
 
   const confirmCopy: Record<JobAction, { title: string; body: string; cta: string }> = {
     accept: {
-      title: `Accept ${job.booking_code}?`,
+      title: `Accept ${job.booking_number}?`,
       body: "The customer will be told you're handling this job.",
       cta: "Accept job",
     },
     reject: {
-      title: `Decline ${job.booking_code}?`,
+      title: `Decline ${job.booking_number}?`,
       body: "The job goes back to dispatch for reassignment.",
       cta: "Decline job",
     },
-    "On The Way": {
+    ON_THE_WAY: {
       title: "Mark yourself on the way?",
       body: "The customer will see that you're travelling to them.",
       cta: "I'm on the way",
     },
-    "In Progress": {
+    SERVICE_STARTED: {
       title: "Start this service?",
       body: "This records the service start time on the booking timeline.",
       cta: "Start service",
     },
-    Completed: {
+    COMPLETED: {
       title: "Complete this service?",
       body: "The customer will be able to review the visit once completed.",
       cta: "Complete service",
@@ -274,7 +313,7 @@ function JobCard({
     job.latitude != null && job.longitude != null
       ? `https://www.google.com/maps/search/?api=1&query=${job.latitude},${job.longitude}`
       : job.address
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${job.address}, ${job.district}, Sri Lanka`)}`
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${job.address}, ${job.district_name}, Sri Lanka`)}`
         : null;
 
   const bigButton = (action: JobAction, icon: React.ReactNode, label: string) => (
@@ -292,13 +331,13 @@ function JobCard({
     <article className="overflow-hidden rounded-sm border border-border/70 bg-background shadow-sm">
       <div className="flex items-start justify-between gap-3 border-b border-border/60 bg-secondary/40 px-5 py-4">
         <div>
-          <p className="font-display text-xl leading-tight text-foreground">{job.job_category}</p>
+          <p className="font-display text-xl leading-tight text-foreground">{job.service_name}</p>
           <p className="mt-1 text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
-            {job.booking_code}
+            {job.booking_number}
           </p>
         </div>
-        <Badge className={STATUS_BADGE[job.job_status] ?? ""}>
-          {STATUS_LABEL[job.job_status] ?? job.job_status}
+        <Badge className={STATUS_BADGE[job.status] ?? ""}>
+          {STATUS_LABEL[job.status] ?? job.status}
         </Badge>
       </div>
 
@@ -317,18 +356,19 @@ function JobCard({
         <p className="flex items-start gap-2 text-foreground">
           <MapPin className="size-4 shrink-0 text-brass" />
           <span>
-            {job.district}
+            {[job.city_name, job.district_name].filter(Boolean).join(", ")}
             {job.address ? ` · ${job.address}` : ""}
           </span>
         </p>
-        {(job.scheduled_date || job.time_slot) && (
-          <p className="flex items-center gap-2 text-muted-foreground">
-            <CalendarDays className="size-4 shrink-0 text-brass" />
-            {job.scheduled_date ?? "Unscheduled"}
-            {job.time_slot ? ` · ${job.time_slot}` : ""}
-          </p>
-        )}
-        <p className="leading-relaxed text-muted-foreground">{job.description}</p>
+        <p className="flex items-center gap-2 text-muted-foreground">
+          <CalendarDays className="size-4 shrink-0 text-brass" />
+          {job.scheduled_date ?? "Unscheduled"}
+          {job.scheduled_time ? ` · ${formatTime(job.scheduled_time)}` : ""}
+        </p>
+        <p className="text-muted-foreground">
+          Quoted {formatLKR(job.final_price ?? job.estimated_price)}
+        </p>
+        <p className="leading-relaxed text-muted-foreground">{job.problem_description}</p>
         {mapsHref && (
           <a
             href={mapsHref}
@@ -342,7 +382,7 @@ function JobCard({
       </div>
 
       <div className="space-y-3 px-5 pb-5">
-        {job.job_status === "Assigned" && (
+        {job.status === "TECHNICIAN_ASSIGNED" && (
           <>
             {bigButton("accept", <CheckCircle2 />, "Accept Job")}
             <Button
@@ -355,22 +395,23 @@ function JobCard({
             </Button>
           </>
         )}
-        {job.job_status === "Accepted" && bigButton("On The Way", <Navigation />, "On My Way")}
-        {job.job_status === "On The Way" &&
-          bigButton("In Progress", <PlayCircle />, "Start Service")}
-        {job.job_status === "In Progress" &&
-          bigButton("Completed", <CheckCircle2 />, "Complete Service")}
-        {job.job_status === "Completed" && (
+        {job.status === "TECHNICIAN_ACCEPTED" &&
+          bigButton("ON_THE_WAY", <Navigation />, "On My Way")}
+        {job.status === "ON_THE_WAY" &&
+          bigButton("SERVICE_STARTED", <PlayCircle />, "Start Service")}
+        {job.status === "SERVICE_STARTED" &&
+          bigButton("COMPLETED", <CheckCircle2 />, "Complete Service")}
+        {job.status === "COMPLETED" && (
           <p className="flex items-center justify-center gap-2 rounded-sm bg-emerald-600/10 py-4 text-sm text-emerald-700">
             <CheckCircle2 className="size-4" /> Completed
           </p>
         )}
-        {job.job_status === "Cancelled" && (
+        {job.status === "CANCELLED" && (
           <p className="flex items-center justify-center gap-2 rounded-sm bg-destructive/10 py-4 text-sm text-destructive">
             <XCircle className="size-4" /> Cancelled by customer
           </p>
         )}
-        {["Pending", "Confirmed"].includes(job.job_status) && (
+        {["PENDING", "CONFIRMED"].includes(job.status) && (
           <p className="flex items-center justify-center gap-2 rounded-sm bg-muted py-4 text-sm text-muted-foreground">
             <Clock className="size-4" /> Awaiting dispatch
           </p>
@@ -386,7 +427,7 @@ function JobCard({
         </button>
         {showHistory && (
           <div className="rounded-sm bg-muted/40 p-4">
-            <TicketHistory ticketId={job.ticket_id} />
+            <TicketHistory bookingId={job.id} />
           </div>
         )}
       </div>
