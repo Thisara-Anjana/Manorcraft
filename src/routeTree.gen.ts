@@ -15,7 +15,9 @@ import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ForProfessionalsRouteImport } from './routes/for-professionals'
 import { Route as GetStartedRouteImport } from './routes/get-started'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TechnicianApplyRouteImport } from './routes/technician-apply'
 import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedBookRouteImport } from './routes/_authenticated/book'
@@ -59,9 +61,19 @@ const GetStartedRoute = GetStartedRouteImport.update({
   path: '/get-started',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TechnicianApplyRoute = TechnicianApplyRouteImport.update({
+  id: '/technician-apply',
+  path: '/technician-apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TechnicianLoginRoute = TechnicianLoginRouteImport.update({
@@ -140,7 +152,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/technician-apply': typeof TechnicianApplyRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/book': typeof AuthenticatedBookRoute
@@ -161,7 +175,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/technician-apply': typeof TechnicianApplyRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/book': typeof AuthenticatedBookRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -183,7 +199,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
+  '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/technician-apply': typeof TechnicianApplyRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/book': typeof AuthenticatedBookRoute
@@ -206,7 +224,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/for-professionals'
     | '/get-started'
+    | '/register'
     | '/reset-password'
+    | '/technician-apply'
     | '/technician-login'
     | '/admin'
     | '/book'
@@ -227,7 +247,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/for-professionals'
     | '/get-started'
+    | '/register'
     | '/reset-password'
+    | '/technician-apply'
     | '/technician-login'
     | '/book'
     | '/dashboard'
@@ -248,7 +270,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/for-professionals'
     | '/get-started'
+    | '/register'
     | '/reset-password'
+    | '/technician-apply'
     | '/technician-login'
     | '/_authenticated/admin'
     | '/_authenticated/book'
@@ -271,7 +295,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForProfessionalsRoute: typeof ForProfessionalsRoute
   GetStartedRoute: typeof GetStartedRoute
+  RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TechnicianApplyRoute: typeof TechnicianApplyRoute
   TechnicianLoginRoute: typeof TechnicianLoginRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -321,11 +347,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GetStartedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/technician-apply': {
+      id: '/technician-apply'
+      path: '/technician-apply'
+      fullPath: '/technician-apply'
+      preLoaderRoute: typeof TechnicianApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/technician-login': {
@@ -467,7 +507,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForProfessionalsRoute: ForProfessionalsRoute,
   GetStartedRoute: GetStartedRoute,
+  RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TechnicianApplyRoute: TechnicianApplyRoute,
   TechnicianLoginRoute: TechnicianLoginRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ServicesIndexRoute: ServicesIndexRoute,
