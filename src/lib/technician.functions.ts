@@ -16,9 +16,7 @@ export const checkIsTechnician = createServerFn({ method: "GET" })
 
 export const setAvailability = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ status: z.enum(["Available", "Off Duty"]) }).parse(data),
-  )
+  .inputValidator((data) => z.object({ status: z.enum(["Available", "Off Duty"]) }).parse(data))
   .handler(async ({ context, data }) => {
     const { error } = await context.supabase
       .from("technicians")

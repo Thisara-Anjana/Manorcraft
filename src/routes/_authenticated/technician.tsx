@@ -41,7 +41,6 @@ import {
   updateJobStatus,
 } from "@/lib/technician.functions";
 
-
 export const Route = createFileRoute("/_authenticated/technician")({
   head: () => ({
     meta: [
@@ -142,7 +141,6 @@ function TechnicianPortal() {
   const list = jobs.data ?? [];
   const active = list.filter((j) => !["Completed", "Cancelled"].includes(j.job_status));
   const done = list.filter((j) => ["Completed", "Cancelled"].includes(j.job_status));
-
 
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
@@ -417,6 +415,5 @@ function JobCard({
         </AlertDialogContent>
       </AlertDialog>
     </article>
-
   );
 }

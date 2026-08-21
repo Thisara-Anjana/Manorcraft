@@ -156,7 +156,14 @@ export const listMapTickets = createServerFn({ method: "GET" })
       .select(
         "ticket_id, customer_id, district, address, job_category, job_status, description, technician_id, scheduled_date, time_slot, latitude, longitude",
       )
-      .in("job_status", ["Pending", "Confirmed", "Assigned", "Accepted", "On The Way", "In Progress"])
+      .in("job_status", [
+        "Pending",
+        "Confirmed",
+        "Assigned",
+        "Accepted",
+        "On The Way",
+        "In Progress",
+      ])
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 

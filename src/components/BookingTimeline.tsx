@@ -22,7 +22,10 @@ export function BookingTimeline({ status, className }: { status: string; classNa
   }
 
   return (
-    <ol className={cn("flex flex-wrap gap-y-4 sm:flex-nowrap", className)} aria-label="Booking progress">
+    <ol
+      className={cn("flex flex-wrap gap-y-4 sm:flex-nowrap", className)}
+      aria-label="Booking progress"
+    >
       {BOOKING_FLOW.map((step, i) => {
         const done = i < current;
         const active = i === current;
@@ -30,7 +33,10 @@ export function BookingTimeline({ status, className }: { status: string; classNa
           <li key={step} className="flex min-w-[4.5rem] flex-1 flex-col items-center text-center">
             <div className="flex w-full items-center">
               <span
-                className={cn("h-px flex-1", i === 0 ? "bg-transparent" : done || active ? "bg-brass" : "bg-border")}
+                className={cn(
+                  "h-px flex-1",
+                  i === 0 ? "bg-transparent" : done || active ? "bg-brass" : "bg-border",
+                )}
               />
               <span
                 className={cn(
@@ -45,7 +51,11 @@ export function BookingTimeline({ status, className }: { status: string; classNa
               <span
                 className={cn(
                   "h-px flex-1",
-                  i === BOOKING_FLOW.length - 1 ? "bg-transparent" : done ? "bg-brass" : "bg-border",
+                  i === BOOKING_FLOW.length - 1
+                    ? "bg-transparent"
+                    : done
+                      ? "bg-brass"
+                      : "bg-border",
                 )}
               />
             </div>
