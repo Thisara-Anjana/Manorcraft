@@ -54,9 +54,9 @@ export const Route = createFileRoute("/_authenticated/admin/admins")({
 });
 
 const roleStyles: Record<string, string> = {
-  admin: "border-brass/50 bg-brass/15 text-accent-foreground",
-  technician: "border-transparent bg-primary text-primary-foreground",
-  customer: "border-transparent bg-muted text-muted-foreground",
+  ADMIN: "border-brass/50 bg-brass/15 text-accent-foreground",
+  TECHNICIAN: "border-transparent bg-primary text-primary-foreground",
+  CUSTOMER: "border-transparent bg-muted text-muted-foreground",
 };
 
 function AdminAccessPage() {
@@ -97,7 +97,7 @@ function AdminAccessPage() {
     );
   }, [users.data, search]);
 
-  const adminCount = (users.data ?? []).filter((u) => u.roles.includes("admin")).length;
+  const adminCount = (users.data ?? []).filter((u) => u.roles.includes("ADMIN")).length;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -141,7 +141,7 @@ function AdminAccessPage() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((u) => {
-                    const isAdmin = u.roles.includes("admin");
+                    const isAdmin = u.roles.includes("ADMIN");
                     const isSelf = me.data?.userId === u.userId;
                     return (
                       <TableRow key={u.userId}>
@@ -163,7 +163,7 @@ function AdminAccessPage() {
                             ) : (
                               u.roles.map((r) => (
                                 <Badge key={r} className={roleStyles[r] ?? ""}>
-                                  {r.charAt(0).toUpperCase() + r.slice(1)}
+                                  {r.charAt(0) + r.slice(1).toLowerCase()}
                                 </Badge>
                               ))
                             )}
