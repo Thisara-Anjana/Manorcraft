@@ -137,10 +137,23 @@ function AdminLogin() {
         <div className="flex justify-end">
           <ForgotPasswordDialog defaultEmail={form.email} />
         </div>
+        {errors["form"] && (
+          <p className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+            {errors["form"]}
+          </p>
+        )}
         <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
           {loading && <Loader2 className="animate-spin" />} Secure Login
         </Button>
       </form>
+
+      <DemoAccess
+        roles={["admin"]}
+        onPick={(email, password) => {
+          setForm({ email, password });
+          setErrors({});
+        }}
+      />
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
         <Link to="/get-started" className="uppercase tracking-[0.16em] hover:text-brass">
@@ -150,3 +163,4 @@ function AdminLogin() {
     </AuthLayout>
   );
 }
+
