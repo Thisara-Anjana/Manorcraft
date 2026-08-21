@@ -24,12 +24,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TicketHistory } from "@/components/TicketHistory";
-import { STATUS_BADGE, STATUS_LABEL } from "@/lib/booking-status";
+import { STATUS_BADGE, STATUS_LABEL, formatLKR, formatTime } from "@/lib/booking-status";
 import {
   assignTechnician,
   confirmBooking,
+  listBookings,
   listTechnicians,
-  listTickets,
+  type AdminBooking,
+  type AdminTechnician,
 } from "@/lib/dispatch.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/dispatch")({
@@ -38,55 +40,56 @@ export const Route = createFileRoute("/_authenticated/admin/dispatch")({
       { title: "Dispatch Board | Manorcraft Admin" },
       {
         name: "description",
-        content: "Assign and track Manorcraft field technicians across every service ticket.",
+        content: "Assign and track Manorcraft field technicians across every service booking.",
       },
       { property: "og:title", content: "Dispatch Board | Manorcraft Admin" },
       {
         property: "og:description",
-        content: "Assign and track Manorcraft field technicians across every service ticket.",
+        content: "Assign and track Manorcraft field technicians across every service booking.",
       },
     ],
   }),
   component: DispatchBoard,
 });
 
-type TicketRow = Awaited<ReturnType<typeof listTickets>>[number];
-type TechnicianRow = Awaited<ReturnType<typeof listTechnicians>>[number];
-
 function DispatchBoard() {
-  const fetchTickets = useServerFn(listTickets);
+  const fetchBookings = useServerFn(listBookings);
   const fetchTechs = useServerFn(listTechnicians);
   const assign = useServerFn(assignTechnician);
   const confirmFn = useServerFn(confirmBooking);
   const queryClient = useQueryClient();
-  const [activeTicket, setActiveTicket] = useState<string | null>(null);
-  const [historyTicket, setHistoryTicket] = useState<string | null>(null);
+  const [activeBooking, setActiveBooking] = useState<AdminBooking | null>(null);
+  const [historyBooking, setHistoryBooking] = useState<AdminBooking | null>(null);
 
-  const tickets = useQuery({ queryKey: ["tickets"], queryFn: () => fetchTickets({}) });
+  const bookings = useQuery({ queryKey: ["admin-bookings"], queryFn: () => fetchBookings({}) });
   const techs = useQuery({
     queryKey: ["technicians"],
     queryFn: () => fetchTechs({}),
-    enabled: !!activeTicket,
+    enabled: !!activeBooking,
   });
 
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-bookings"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    queryClient.invalidateQueries({ queryKey: ["technicians"] });
+    queryClient.invalidateQueries({ queryKey: ["booking-history"] });
+  };
+
   const mutation = useMutation({
-    mutationFn: (vars: { ticketId: string; technicianId: string }) => assign({ data: vars }),
+    mutationFn: (vars: { bookingId: string; technicianId: string }) => assign({ data: vars }),
     onSuccess: () => {
       toast.success("Technician assigned");
-      setActiveTicket(null);
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["technicians"] });
-      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+      setActiveBooking(null);
+      invalidate();
     },
     onError: (e: Error) => toast.error("Could not assign technician", { description: e.message }),
   });
 
   const confirmMutation = useMutation({
-    mutationFn: (ticketId: string) => confirmFn({ data: { ticketId } }),
+    mutationFn: (bookingId: string) => confirmFn({ data: { bookingId } }),
     onSuccess: () => {
       toast.success("Booking confirmed");
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+      invalidate();
     },
     onError: (e: Error) => toast.error("Could not confirm booking", { description: e.message }),
   });
@@ -96,67 +99,71 @@ function DispatchBoard() {
       <div>
         <h1 className="font-display text-3xl tracking-tight">Dispatch Board</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every service ticket across the Manorcraft branch network.
+          Every service booking across the Manorcraft island network.
         </p>
       </div>
 
       <Card className="border-border/70">
         <CardHeader>
-          <CardTitle className="font-display text-xl">Job Tickets</CardTitle>
+          <CardTitle className="font-display text-xl">Bookings</CardTitle>
         </CardHeader>
         <CardContent className="px-0 sm:px-6">
-          {tickets.isPending ? (
+          {bookings.isPending ? (
             <div className="space-y-3 px-6">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : tickets.isError ? (
-            <p className="px-6 text-sm text-destructive">{(tickets.error as Error).message}</p>
-          ) : tickets.data.length === 0 ? (
-            <p className="px-6 text-sm text-muted-foreground">No tickets have been booked yet.</p>
+          ) : bookings.isError ? (
+            <p className="px-6 text-sm text-destructive">{(bookings.error as Error).message}</p>
+          ) : bookings.data.length === 0 ? (
+            <p className="px-6 text-sm text-muted-foreground">No bookings have been made yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Booking</TableHead>
-                    <TableHead>District</TableHead>
-                    <TableHead>Job Category</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Scheduled</TableHead>
+                    <TableHead>Technician</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tickets.data.map((t: TicketRow) => (
-                    <TableRow key={t.ticket_id}>
-                      <TableCell className="font-medium">{t.booking_code}</TableCell>
-                      <TableCell>{t.district}</TableCell>
-                      <TableCell>{t.job_category}</TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {t.description}
+                  {bookings.data.map((b: AdminBooking) => (
+                    <TableRow key={b.id}>
+                      <TableCell className="font-medium">{b.booking_number}</TableCell>
+                      <TableCell>{b.customer_name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {[b.city_name, b.district_name].filter(Boolean).join(", ")}
+                      </TableCell>
+                      <TableCell>{b.service_name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {b.scheduled_date} · {formatTime(b.scheduled_time)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {b.technician_name ?? "—"}
                       </TableCell>
                       <TableCell>
-                        <Badge className={STATUS_BADGE[t.job_status] ?? ""}>
-                          {STATUS_LABEL[t.job_status] ?? t.job_status}
+                        <Badge className={STATUS_BADGE[b.status] ?? ""}>
+                          {STATUS_LABEL[b.status] ?? b.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setHistoryTicket(t.ticket_id)}
-                          >
+                          <Button size="sm" variant="ghost" onClick={() => setHistoryBooking(b)}>
                             History
                           </Button>
-                          {t.job_status === "Pending" && (
+                          {b.status === "PENDING" && (
                             <Button
                               size="sm"
                               variant="outline"
                               disabled={confirmMutation.isPending}
-                              onClick={() => confirmMutation.mutate(t.ticket_id)}
+                              onClick={() => confirmMutation.mutate(b.id)}
                             >
                               Confirm
                             </Button>
@@ -164,8 +171,8 @@ function DispatchBoard() {
                           <Button
                             size="sm"
                             variant="outlineBrass"
-                            disabled={["Completed", "Cancelled"].includes(t.job_status)}
-                            onClick={() => setActiveTicket(t.ticket_id)}
+                            disabled={["COMPLETED", "CANCELLED"].includes(b.status)}
+                            onClick={() => setActiveBooking(b)}
                           >
                             Assign Tech
                           </Button>
@@ -180,13 +187,14 @@ function DispatchBoard() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!activeTicket} onOpenChange={(open) => !open && setActiveTicket(null)}>
+      <Dialog open={!!activeBooking} onOpenChange={(open) => !open && setActiveBooking(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">Assign a technician</DialogTitle>
             <DialogDescription>
-              Choose a technician to take ticket {activeTicket?.slice(0, 8).toUpperCase()}. The
-              ticket status becomes “Assigned”.
+              Choose a technician for {activeBooking?.booking_number} ·{" "}
+              {activeBooking?.service_name} in {activeBooking?.district_name}. Quoted{" "}
+              {formatLKR(activeBooking?.estimated_price ?? 0)}.
             </DialogDescription>
           </DialogHeader>
 
@@ -194,30 +202,28 @@ function DispatchBoard() {
             <p className="text-sm text-muted-foreground">Loading roster…</p>
           ) : techs.data && techs.data.length > 0 ? (
             <ul className="max-h-80 space-y-2 overflow-y-auto">
-              {techs.data.map((tech: TechnicianRow) => (
+              {techs.data.map((tech: AdminTechnician) => (
                 <li
-                  key={tech.technician_id}
+                  key={tech.id}
                   className="flex items-center justify-between gap-4 rounded-md border border-border/70 p-3"
                 >
                   <div>
                     <p className="text-sm font-medium">{tech.full_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {tech.primary_skill} · {tech.current_status}
+                      {tech.specialization} · {tech.district_name ?? "Island-wide"} ·{" "}
+                      {tech.rating.toFixed(1)}★ · {tech.active_jobs} active
                     </p>
                   </div>
                   <Button
                     size="sm"
                     variant="brass"
-                    disabled={mutation.isPending || tech.current_status === "Off Duty"}
+                    disabled={mutation.isPending || !tech.availability}
                     onClick={() =>
-                      activeTicket &&
-                      mutation.mutate({
-                        ticketId: activeTicket,
-                        technicianId: tech.technician_id,
-                      })
+                      activeBooking &&
+                      mutation.mutate({ bookingId: activeBooking.id, technicianId: tech.id })
                     }
                   >
-                    Assign
+                    {tech.availability ? "Assign" : "Off duty"}
                   </Button>
                 </li>
               ))}
@@ -230,15 +236,15 @@ function DispatchBoard() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!historyTicket} onOpenChange={(open) => !open && setHistoryTicket(null)}>
+      <Dialog open={!!historyBooking} onOpenChange={(open) => !open && setHistoryBooking(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">Status history</DialogTitle>
             <DialogDescription>
-              Every recorded status change for ticket {historyTicket?.slice(0, 8).toUpperCase()}.
+              Every recorded status change for {historyBooking?.booking_number}.
             </DialogDescription>
           </DialogHeader>
-          {historyTicket && <TicketHistory ticketId={historyTicket} />}
+          {historyBooking && <TicketHistory bookingId={historyBooking.id} />}
         </DialogContent>
       </Dialog>
     </div>
