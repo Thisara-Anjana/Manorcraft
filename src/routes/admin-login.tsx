@@ -67,7 +67,7 @@ function AdminLogin() {
     });
     if (error) {
       setLoading(false);
-      toast.error("Sign in failed", { description: error.message });
+      setErrors({ form: friendlyAuthError(error, "We couldn't sign you in. Please try again.") });
       return;
     }
     const home = await resolvePortalHome();
@@ -77,6 +77,7 @@ function AdminLogin() {
     }
     navigate({ to: home, replace: true });
   };
+
 
   return (
     <AuthLayout
