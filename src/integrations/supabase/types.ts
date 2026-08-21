@@ -14,29 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      branches: {
+      booking_status_history: {
         Row: {
-          branch_id: string
+          booking_id: string
+          changed_by: string | null
           created_at: string
-          district_name: string
-          manager_name: string
+          id: string
+          note: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+        }
+        Insert: {
+          booking_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status: Database["public"]["Enums"]["booking_status"]
+        }
+        Update: {
+          booking_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          address: string
+          booking_number: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          city_id: string
+          created_at: string
+          customer_id: string
+          district_id: string
+          estimated_price: number
+          final_price: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          problem_description: string
+          reschedule_count: number
+          scheduled_date: string
+          scheduled_time: string
+          service_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          technician_id: string | null
           updated_at: string
         }
         Insert: {
-          branch_id?: string
+          address: string
+          booking_number?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          city_id: string
           created_at?: string
-          district_name: string
-          manager_name: string
+          customer_id: string
+          district_id: string
+          estimated_price?: number
+          final_price?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          problem_description?: string
+          reschedule_count?: number
+          scheduled_date: string
+          scheduled_time?: string
+          service_id: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          technician_id?: string | null
           updated_at?: string
         }
         Update: {
-          branch_id?: string
+          address?: string
+          booking_number?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          city_id?: string
           created_at?: string
-          district_name?: string
-          manager_name?: string
+          customer_id?: string
+          district_id?: string
+          estimated_price?: number
+          final_price?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          problem_description?: string
+          reschedule_count?: number
+          scheduled_date?: string
+          scheduled_time?: string
+          service_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          technician_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bookings_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brand_settings: {
         Row: {
@@ -56,246 +182,347 @@ export type Database = {
         }
         Relationships: []
       }
-      customers: {
+      cities: {
         Row: {
           created_at: string
-          customer_id: string
-          full_name: string
-          phone_number: string | null
-          updated_at: string
+          district_id: string
+          id: string
+          name: string
+          postal_code: string | null
         }
         Insert: {
           created_at?: string
-          customer_id: string
-          full_name: string
-          phone_number?: string | null
-          updated_at?: string
+          district_id: string
+          id?: string
+          name: string
+          postal_code?: string | null
         }
         Update: {
           created_at?: string
-          customer_id?: string
-          full_name?: string
-          phone_number?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      job_tickets: {
-        Row: {
-          address: string | null
-          booking_code: string
-          cancellation_reason: string | null
-          cancelled_at: string | null
-          created_at: string
-          customer_id: string
-          description: string
-          district: string
-          job_category: Database["public"]["Enums"]["job_category"]
-          job_status: Database["public"]["Enums"]["job_status"]
-          latitude: number | null
-          longitude: number | null
-          reschedule_count: number
-          scheduled_date: string | null
-          technician_id: string | null
-          ticket_id: string
-          time_slot: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          booking_code?: string
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          created_at?: string
-          customer_id: string
-          description: string
-          district: string
-          job_category: Database["public"]["Enums"]["job_category"]
-          job_status?: Database["public"]["Enums"]["job_status"]
-          latitude?: number | null
-          longitude?: number | null
-          reschedule_count?: number
-          scheduled_date?: string | null
-          technician_id?: string | null
-          ticket_id?: string
-          time_slot?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          booking_code?: string
-          cancellation_reason?: string | null
-          cancelled_at?: string | null
-          created_at?: string
-          customer_id?: string
-          description?: string
-          district?: string
-          job_category?: Database["public"]["Enums"]["job_category"]
-          job_status?: Database["public"]["Enums"]["job_status"]
-          latitude?: number | null
-          longitude?: number | null
-          reschedule_count?: number
-          scheduled_date?: string | null
-          technician_id?: string | null
-          ticket_id?: string
-          time_slot?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      job_tickets_history: {
-        Row: {
-          changed_by: string | null
-          created_at: string
-          history_id: string
-          new_status: Database["public"]["Enums"]["job_status"]
-          old_status: Database["public"]["Enums"]["job_status"] | null
-          ticket_id: string
-        }
-        Insert: {
-          changed_by?: string | null
-          created_at?: string
-          history_id?: string
-          new_status: Database["public"]["Enums"]["job_status"]
-          old_status?: Database["public"]["Enums"]["job_status"] | null
-          ticket_id: string
-        }
-        Update: {
-          changed_by?: string | null
-          created_at?: string
-          history_id?: string
-          new_status?: Database["public"]["Enums"]["job_status"]
-          old_status?: Database["public"]["Enums"]["job_status"] | null
-          ticket_id?: string
+          district_id?: string
+          id?: string
+          name?: string
+          postal_code?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "job_tickets_history_ticket_id_fkey"
-            columns: ["ticket_id"]
+            foreignKeyName: "cities_district_id_fkey"
+            columns: ["district_id"]
             isOneToOne: false
-            referencedRelation: "job_tickets"
-            referencedColumns: ["ticket_id"]
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      districts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          province: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          province: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          province?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          city_id: string | null
+          created_at: string
+          district_id: string | null
+          email: string | null
+          full_name: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          city_id?: string | null
+          created_at?: string
+          district_id?: string | null
+          email?: string | null
+          full_name?: string
+          id: string
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          city_id?: string | null
+          created_at?: string
+          district_id?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
           },
         ]
       }
       reviews: {
         Row: {
+          booking_id: string
           comment: string | null
           created_at: string
           customer_id: string
+          id: string
           rating: number
-          review_id: string
           technician_id: string | null
-          ticket_id: string
           updated_at: string
         }
         Insert: {
+          booking_id: string
           comment?: string | null
           created_at?: string
           customer_id: string
+          id?: string
           rating: number
-          review_id?: string
           technician_id?: string | null
-          ticket_id: string
           updated_at?: string
         }
         Update: {
+          booking_id?: string
           comment?: string | null
           created_at?: string
           customer_id?: string
+          id?: string
           rating?: number
-          review_id?: string
           technician_id?: string | null
-          ticket_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "reviews_ticket_id_fkey"
-            columns: ["ticket_id"]
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
             isOneToOne: true
-            referencedRelation: "job_tickets"
-            referencedColumns: ["ticket_id"]
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
       services: {
         Row: {
-          category: Database["public"]["Enums"]["job_category"]
-          common_problems: string[]
+          active: boolean
+          category: string
           created_at: string
           description: string
           display_order: number
-          estimated_duration_minutes: number
+          estimated_duration: number
           hourly_rate: number
-          is_active: boolean
+          id: string
+          image_url: string | null
           name: string
-          service_id: string
           slug: string
           starting_price: number
-          tagline: string
           updated_at: string
         }
         Insert: {
-          category: Database["public"]["Enums"]["job_category"]
-          common_problems?: string[]
+          active?: boolean
+          category: string
           created_at?: string
           description?: string
           display_order?: number
-          estimated_duration_minutes?: number
+          estimated_duration?: number
           hourly_rate?: number
-          is_active?: boolean
+          id?: string
+          image_url?: string | null
           name: string
-          service_id?: string
           slug: string
           starting_price?: number
-          tagline?: string
           updated_at?: string
         }
         Update: {
-          category?: Database["public"]["Enums"]["job_category"]
-          common_problems?: string[]
+          active?: boolean
+          category?: string
           created_at?: string
           description?: string
           display_order?: number
-          estimated_duration_minutes?: number
+          estimated_duration?: number
           hourly_rate?: number
-          is_active?: boolean
+          id?: string
+          image_url?: string | null
           name?: string
-          service_id?: string
           slug?: string
           starting_price?: number
-          tagline?: string
           updated_at?: string
         }
         Relationships: []
       }
-      technicians: {
+      technician_availability: {
         Row: {
+          available: boolean
           created_at: string
-          current_status: Database["public"]["Enums"]["tech_status"]
-          full_name: string
-          primary_skill: Database["public"]["Enums"]["job_category"]
+          day_of_week: number
+          end_time: string
+          id: string
+          start_time: string
           technician_id: string
-          updated_at: string
         }
         Insert: {
+          available?: boolean
           created_at?: string
-          current_status?: Database["public"]["Enums"]["tech_status"]
-          full_name: string
-          primary_skill: Database["public"]["Enums"]["job_category"]
+          day_of_week: number
+          end_time?: string
+          id?: string
+          start_time?: string
           technician_id: string
-          updated_at?: string
         }
         Update: {
+          available?: boolean
           created_at?: string
-          current_status?: Database["public"]["Enums"]["tech_status"]
-          full_name?: string
-          primary_skill?: Database["public"]["Enums"]["job_category"]
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          start_time?: string
           technician_id?: string
-          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "technician_availability_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_profiles: {
+        Row: {
+          availability: boolean
+          bio: string
+          completed_jobs: number
+          created_at: string
+          experience_years: number
+          profile_id: string
+          rating: number
+          service_radius_km: number
+          specialization: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          availability?: boolean
+          bio?: string
+          completed_jobs?: number
+          created_at?: string
+          experience_years?: number
+          profile_id: string
+          rating?: number
+          service_radius_km?: number
+          specialization: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          availability?: boolean
+          bio?: string
+          completed_jobs?: number
+          created_at?: string
+          experience_years?: number
+          profile_id?: string
+          rating?: number
+          service_radius_km?: number
+          specialization?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -330,20 +557,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "technician" | "customer"
-      job_category: "Plumbing" | "Electrical" | "Masonry" | "AC Repair"
-      job_status:
-        | "Pending"
-        | "Confirmed"
-        | "Assigned"
-        | "Accepted"
-        | "On The Way"
-        | "In Progress"
-        | "Completed"
-        | "Cancelled"
-      tech_status: "Available" | "On Job" | "Off Duty"
+      app_role: "ADMIN" | "CUSTOMER" | "TECHNICIAN"
+      booking_status:
+        | "PENDING"
+        | "CONFIRMED"
+        | "TECHNICIAN_ASSIGNED"
+        | "TECHNICIAN_ACCEPTED"
+        | "ON_THE_WAY"
+        | "SERVICE_STARTED"
+        | "COMPLETED"
+        | "CANCELLED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -471,19 +697,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "technician", "customer"],
-      job_category: ["Plumbing", "Electrical", "Masonry", "AC Repair"],
-      job_status: [
-        "Pending",
-        "Confirmed",
-        "Assigned",
-        "Accepted",
-        "On The Way",
-        "In Progress",
-        "Completed",
-        "Cancelled",
+      app_role: ["ADMIN", "CUSTOMER", "TECHNICIAN"],
+      booking_status: [
+        "PENDING",
+        "CONFIRMED",
+        "TECHNICIAN_ASSIGNED",
+        "TECHNICIAN_ACCEPTED",
+        "ON_THE_WAY",
+        "SERVICE_STARTED",
+        "COMPLETED",
+        "CANCELLED",
       ],
-      tech_status: ["Available", "On Job", "Off Duty"],
     },
   },
 } as const
