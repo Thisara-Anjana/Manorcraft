@@ -8,8 +8,10 @@ import {
   Clock,
   Loader2,
   MapPin,
+  Phone,
   Plus,
   RefreshCw,
+  Star,
   UserCheck,
   Wrench,
   XCircle,
@@ -45,11 +47,14 @@ import {
   STATUS_LABEL,
   canCustomerCancel,
   canCustomerReschedule,
+  formatLKR,
+  formatTime,
 } from "@/lib/booking-status";
 import {
   cancelBooking,
   listMyBookings,
   rescheduleBooking,
+  submitReview,
   type CustomerBooking,
 } from "@/lib/portal.functions";
 
@@ -74,13 +79,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: CustomerDashboard,
 });
 
-const TIME_SLOTS = [
-  "08:00 – 10:00",
-  "10:00 – 12:00",
-  "13:00 – 15:00",
-  "15:00 – 17:00",
-  "17:00 – 19:00",
-];
+const TIME_SLOTS = ["08:00", "10:00", "13:00", "15:00", "17:00"];
 
 function CustomerDashboard() {
   const queryClient = useQueryClient();
@@ -90,7 +89,7 @@ function CustomerDashboard() {
     queryFn: () => fetchBookings({}),
   });
 
-  // Live status tracking: any change to this customer's tickets refreshes the list.
+  // Live status tracking: any change to this customer's bookings refreshes the list.
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | undefined;
     let cancelledEffect = false;
@@ -105,12 +104,12 @@ function CustomerDashboard() {
           {
             event: "*",
             schema: "public",
-            table: "job_tickets",
+            table: "bookings",
             filter: `customer_id=eq.${uid}`,
           },
           () => {
             queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
-            queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+            queryClient.invalidateQueries({ queryKey: ["booking-history"] });
           },
         )
         .subscribe();
@@ -186,7 +185,7 @@ function CustomerDashboard() {
               </Button>
             </div>
           ) : (
-            data.map((b) => <BookingCard key={b.ticket_id} booking={b} />)
+            data.map((b) => <BookingCard key={b.id} booking={b} />)
           )}
         </div>
       </main>
@@ -199,24 +198,28 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
   const [showHistory, setShowHistory] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
   const [date, setDate] = useState<Date | undefined>(
     b.scheduled_date ? new Date(b.scheduled_date) : undefined,
   );
-  const [slot, setSlot] = useState(b.time_slot ?? "");
+  const [slot, setSlot] = useState((b.scheduled_time ?? "").slice(0, 5));
 
   const doCancel = useServerFn(cancelBooking);
   const doReschedule = useServerFn(rescheduleBooking);
+  const doReview = useServerFn(submitReview);
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
-    queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+    queryClient.invalidateQueries({ queryKey: ["booking-history"] });
   };
 
   const cancelMutation = useMutation({
-    mutationFn: () => doCancel({ data: { ticketId: b.ticket_id, reason } }),
+    mutationFn: () => doCancel({ data: { bookingId: b.id, reason } }),
     onSuccess: () => {
-      toast.success(`Booking ${b.booking_code} cancelled`);
+      toast.success(`Booking ${b.booking_number} cancelled`);
       setCancelOpen(false);
       refresh();
     },
@@ -228,18 +231,29 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
     mutationFn: () =>
       doReschedule({
         data: {
-          ticketId: b.ticket_id,
+          bookingId: b.id,
           scheduledDate: date ? format(date, "yyyy-MM-dd") : "",
-          timeSlot: slot,
+          scheduledTime: slot,
         },
       }),
     onSuccess: () => {
-      toast.success(`Booking ${b.booking_code} rescheduled`);
+      toast.success(`Booking ${b.booking_number} rescheduled`);
       setRescheduleOpen(false);
       refresh();
     },
     onError: (error: Error) =>
       toast.error("Could not reschedule booking", { description: error.message }),
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: () => doReview({ data: { bookingId: b.id, rating, comment } }),
+    onSuccess: () => {
+      toast.success("Thank you for your review");
+      setReviewOpen(false);
+      refresh();
+    },
+    onError: (error: Error) =>
+      toast.error("Could not save your review", { description: error.message }),
   });
 
   return (
@@ -250,25 +264,23 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
             <Wrench className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="font-display text-xl text-foreground">{b.job_category}</h2>
+            <h2 className="font-display text-xl text-foreground">{b.service_name}</h2>
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              {b.booking_code}
+              {b.booking_number}
             </p>
           </div>
         </div>
-        <Badge className={STATUS_BADGE[b.job_status] ?? ""}>
-          {STATUS_LABEL[b.job_status] ?? b.job_status}
-        </Badge>
+        <Badge className={STATUS_BADGE[b.status] ?? ""}>{STATUS_LABEL[b.status] ?? b.status}</Badge>
       </div>
 
-      <BookingTimeline status={b.job_status} className="mt-6" />
+      <BookingTimeline status={b.status} className="mt-6" />
 
-      <p className="mt-5 text-sm text-muted-foreground">{b.description}</p>
+      <p className="mt-5 text-sm text-muted-foreground">{b.problem_description}</p>
 
       <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
         <span className="flex items-center gap-2">
           <MapPin className="h-4 w-4 shrink-0 text-brass" />
-          {b.district}
+          {[b.city_name, b.district_name].filter(Boolean).join(", ")}
         </span>
         {b.scheduled_date && (
           <span className="flex items-center gap-2">
@@ -276,22 +288,36 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
             {b.scheduled_date}
           </span>
         )}
-        {b.time_slot && (
+        {b.scheduled_time && (
           <span className="flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0 text-brass" />
-            {b.time_slot}
+            {formatTime(b.scheduled_time)}
           </span>
         )}
       </div>
 
+      <p className="mt-3 text-sm text-muted-foreground">
+        {b.final_price !== null ? "Final price" : "Estimated from"}{" "}
+        <span className="font-medium text-foreground">
+          {formatLKR(b.final_price ?? b.estimated_price)}
+        </span>
+      </p>
+
       {b.technician_name && (
-        <p className="mt-4 flex items-center gap-2 rounded-sm bg-secondary/50 px-3 py-2 text-sm text-foreground">
-          <UserCheck className="h-4 w-4 shrink-0 text-brass" />
-          <span>
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-sm bg-secondary/50 px-3 py-2 text-sm text-foreground">
+          <span className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4 shrink-0 text-brass" />
             {b.technician_name}
-            <span className="text-muted-foreground"> · {b.technician_skill} specialist</span>
           </span>
-        </p>
+          {b.technician_phone && (
+            <a
+              href={`tel:${b.technician_phone}`}
+              className="flex items-center gap-2 text-muted-foreground hover:text-brass"
+            >
+              <Phone className="h-4 w-4" /> {b.technician_phone}
+            </a>
+          )}
+        </div>
       )}
 
       {b.cancellation_reason && (
@@ -299,14 +325,19 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
       )}
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {canCustomerReschedule(b.job_status) && (
+        {canCustomerReschedule(b.status) && (
           <Button variant="outline" size="sm" onClick={() => setRescheduleOpen(true)}>
             <RefreshCw className="mr-2 h-4 w-4" /> Reschedule
           </Button>
         )}
-        {canCustomerCancel(b.job_status) && (
+        {canCustomerCancel(b.status) && (
           <Button variant="outline" size="sm" onClick={() => setCancelOpen(true)}>
             <XCircle className="mr-2 h-4 w-4" /> Cancel
+          </Button>
+        )}
+        {b.status === "COMPLETED" && !b.has_review && (
+          <Button variant="brass" size="sm" onClick={() => setReviewOpen(true)}>
+            <Star className="mr-2 h-4 w-4" /> Leave a review
           </Button>
         )}
         <Button variant="ghost" size="sm" onClick={() => setShowHistory((v) => !v)}>
@@ -316,16 +347,16 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
 
       {showHistory && (
         <div className="mt-4 rounded-sm bg-muted/40 p-4">
-          <TicketHistory ticketId={b.ticket_id} />
+          <TicketHistory bookingId={b.id} />
         </div>
       )}
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel booking {b.booking_code}?</DialogTitle>
+            <DialogTitle>Cancel booking {b.booking_number}?</DialogTitle>
             <DialogDescription>
-              This releases your {b.job_category.toLowerCase()} slot. You can always book again.
+              This releases your {b.service_name.toLowerCase()} slot. You can always book again.
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -353,8 +384,8 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
       <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reschedule {b.booking_code}</DialogTitle>
-            <DialogDescription>Choose a new preferred date and time slot.</DialogDescription>
+            <DialogTitle>Reschedule {b.booking_number}</DialogTitle>
+            <DialogDescription>Choose a new preferred date and arrival time.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Calendar
@@ -366,12 +397,12 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
             />
             <Select value={slot} onValueChange={setSlot}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a time slot" />
+                <SelectValue placeholder="Select an arrival time" />
               </SelectTrigger>
               <SelectContent>
                 {TIME_SLOTS.map((t) => (
                   <SelectItem key={t} value={t}>
-                    {t}
+                    {formatTime(t)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -388,6 +419,51 @@ function BookingCard({ booking: b }: { booking: CustomerBooking }) {
             >
               {rescheduleMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save new time
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rate {b.service_name}</DialogTitle>
+            <DialogDescription>
+              How was your visit{b.technician_name ? ` with ${b.technician_name}` : ""}?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                onClick={() => setRating(n)}
+                className="p-1"
+              >
+                <Star
+                  className={`h-7 w-7 ${n <= rating ? "fill-brass text-brass" : "text-muted-foreground"}`}
+                />
+              </button>
+            ))}
+          </div>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Tell other households about the craftsmanship (optional)"
+            maxLength={600}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)}>
+              Not now
+            </Button>
+            <Button
+              variant="brass"
+              disabled={reviewMutation.isPending}
+              onClick={() => reviewMutation.mutate()}
+            >
+              {reviewMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Submit review
             </Button>
           </DialogFooter>
         </DialogContent>

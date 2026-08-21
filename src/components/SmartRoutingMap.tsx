@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { MapPin, Route as RouteIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABEL } from "@/lib/booking-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,9 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { assignTechnician, listMapTickets, listTechnicians } from "@/lib/dispatch.functions";
+import { assignTechnician, listMapBookings, listTechnicians } from "@/lib/dispatch.functions";
 
-type MapTicket = Awaited<ReturnType<typeof listMapTickets>>[number];
+type MapTicket = Awaited<ReturnType<typeof listMapBookings>>[number];
 
 const SRI_LANKA_CENTER: [number, number] = [7.8731, 80.7718];
 
@@ -48,8 +49,8 @@ function coordsFor(ticket: MapTicket, index: number): [number, number] {
   if (ticket.latitude != null && ticket.longitude != null) {
     return [ticket.latitude, ticket.longitude];
   }
-  const base = DISTRICT_COORDS[ticket.district?.toLowerCase() ?? ""] ?? SRI_LANKA_CENTER;
-  return [base[0] + jitter(ticket.ticket_id, index), base[1] + jitter(ticket.district, index)];
+  const base = DISTRICT_COORDS[ticket.district_name?.toLowerCase() ?? ""] ?? SRI_LANKA_CENTER;
+  return [base[0] + jitter(ticket.id, index), base[1] + jitter(ticket.district_name, index)];
 }
 
 function distance(a: [number, number], b: [number, number]) {
@@ -183,8 +184,9 @@ function formatDuration(minutes: number) {
 function markerIcon(status: string, label?: number) {
   const gold = "#c9a227";
   const navy = "#0f1e3d";
-  const fill = status === "Assigned" ? gold : navy;
-  const text = status === "Assigned" ? navy : gold;
+  const assigned = status !== "PENDING" && status !== "CONFIRMED";
+  const fill = assigned ? gold : navy;
+  const text = assigned ? navy : gold;
   return L.divIcon({
     className: "",
     html: `<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9999px;background:${fill};border:2px solid ${text};color:${text};font:600 12px/1 Karla,system-ui,sans-serif;box-shadow:0 6px 16px rgba(15,30,61,.35)">${
@@ -196,7 +198,7 @@ function markerIcon(status: string, label?: number) {
 }
 
 export default function SmartRoutingMap() {
-  const fetchTickets = useServerFn(listMapTickets);
+  const fetchTickets = useServerFn(listMapBookings);
   const fetchTechs = useServerFn(listTechnicians);
   const assign = useServerFn(assignTechnician);
   const queryClient = useQueryClient();
@@ -209,7 +211,7 @@ export default function SmartRoutingMap() {
   const techsQuery = useQuery({ queryKey: ["admin", "technicians"], queryFn: () => fetchTechs() });
 
   const assignMutation = useMutation({
-    mutationFn: (vars: { ticketId: string; technicianId: string }) => assign({ data: vars }),
+    mutationFn: (vars: { bookingId: string; technicianId: string }) => assign({ data: vars }),
     onSuccess: () => {
       toast.success("Technician assigned", { description: "The route has been updated." });
       queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -219,7 +221,7 @@ export default function SmartRoutingMap() {
   });
 
   const techName = (id: string | null) =>
-    (techsQuery.data ?? []).find((t) => t.technician_id === id)?.full_name ?? null;
+    (techsQuery.data ?? []).find((t) => t.id === id)?.full_name ?? null;
 
   const points = useMemo(
     () =>
@@ -263,7 +265,7 @@ export default function SmartRoutingMap() {
     tripQuery.data && selectedTech !== "all"
       ? tripQuery.data.geometry
       : route.map((stop) => stop.position);
-  const numbering = new Map(route.map((stop, i) => [stop.ticket.ticket_id, i + 1]));
+  const numbering = new Map(route.map((stop, i) => [stop.ticket.id, i + 1]));
 
   if (ticketsQuery.isLoading) {
     return <Skeleton className="h-[70vh] w-full rounded-xl" />;
@@ -293,27 +295,27 @@ export default function SmartRoutingMap() {
 
               {visible.map(({ ticket, position }) => (
                 <Marker
-                  key={ticket.ticket_id}
+                  key={ticket.id}
                   position={position}
-                  icon={markerIcon(ticket.job_status, numbering.get(ticket.ticket_id))}
+                  icon={markerIcon(ticket.status, numbering.get(ticket.id))}
                 >
                   <Popup>
                     <div className="min-w-[220px] space-y-2 font-sans">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-display text-base text-primary">
-                          {ticket.job_category}
+                          {ticket.service_name}
                         </span>
                         <Badge variant="outline" className="border-brass/50 text-[10px]">
-                          {ticket.job_status}
+                          {STATUS_LABEL[ticket.status] ?? ticket.status}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {ticket.customer_name} &middot; {ticket.district}
+                        {ticket.customer_name} &middot; {ticket.district_name}
                       </p>
                       {ticket.address && (
                         <p className="text-xs text-muted-foreground">{ticket.address}</p>
                       )}
-                      <p className="text-xs">{ticket.description}</p>
+                      <p className="text-xs">{ticket.problem_description}</p>
                       <div className="pt-1">
                         <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                           Assign to tech
@@ -321,7 +323,7 @@ export default function SmartRoutingMap() {
                         <Select
                           {...(ticket.technician_id ? { value: ticket.technician_id } : {})}
                           onValueChange={(technicianId) =>
-                            assignMutation.mutate({ ticketId: ticket.ticket_id, technicianId })
+                            assignMutation.mutate({ bookingId: ticket.id, technicianId })
                           }
                         >
                           <SelectTrigger className="h-8 text-xs">
@@ -329,8 +331,8 @@ export default function SmartRoutingMap() {
                           </SelectTrigger>
                           <SelectContent>
                             {(techsQuery.data ?? []).map((tech) => (
-                              <SelectItem key={tech.technician_id} value={tech.technician_id}>
-                                {tech.full_name} — {tech.primary_skill}
+                              <SelectItem key={tech.id} value={tech.id}>
+                                {tech.full_name} — {tech.specialization}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -357,7 +359,7 @@ export default function SmartRoutingMap() {
             <SelectContent>
               <SelectItem value="all">All open jobs</SelectItem>
               {(techsQuery.data ?? []).map((tech) => (
-                <SelectItem key={tech.technician_id} value={tech.technician_id}>
+                <SelectItem key={tech.id} value={tech.id}>
                   {tech.full_name}
                 </SelectItem>
               ))}
@@ -406,20 +408,20 @@ export default function SmartRoutingMap() {
               <ol className="space-y-3">
                 {route.map((stop, index) => (
                   <li
-                    key={stop.ticket.ticket_id}
+                    key={stop.ticket.id}
                     className="flex gap-3 rounded-lg border border-border/60 bg-card p-3"
                   >
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-brass">
                       {index + 1}
                     </span>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">{stop.ticket.job_category}</p>
+                      <p className="text-sm font-medium">{stop.ticket.service_name}</p>
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" /> {stop.ticket.district} &middot;{" "}
+                        <MapPin className="h-3 w-3" /> {stop.ticket.district_name} &middot;{" "}
                         {stop.ticket.customer_name}
                       </p>
                       <Badge variant="outline" className="border-brass/50 text-[10px]">
-                        {stop.ticket.job_status}
+                        {STATUS_LABEL[stop.ticket.status] ?? stop.ticket.status}
                       </Badge>
                     </div>
                   </li>

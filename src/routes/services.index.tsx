@@ -82,7 +82,7 @@ function ServicesPage() {
               )}
             </div>
             <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
-              {service.tagline || service.description}
+              {service.description}
             </p>
             <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-5 text-sm">
               <div>

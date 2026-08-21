@@ -12,7 +12,7 @@ async function assertAdmin(context: Ctx) {
     .from("user_roles")
     .select("role")
     .eq("user_id", context.userId)
-    .eq("role", "admin")
+    .eq("role", "ADMIN")
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden: admin access required");
@@ -39,25 +39,23 @@ export const listUsersWithRoles = createServerFn({ method: "GET" })
     });
     if (usersError) throw new Error(usersError.message);
 
-    const [{ data: roles }, { data: customers }, { data: technicians }] = await Promise.all([
+    const [{ data: roles }, { data: profiles }] = await Promise.all([
       supabaseAdmin.from("user_roles").select("user_id, role"),
-      supabaseAdmin.from("customers").select("customer_id, full_name, phone_number"),
-      supabaseAdmin.from("technicians").select("technician_id, full_name"),
+      supabaseAdmin.from("profiles").select("id, full_name, phone"),
     ]);
 
     const roleMap = new Map<string, string[]>();
     for (const r of roles ?? []) {
       roleMap.set(r.user_id, [...(roleMap.get(r.user_id) ?? []), r.role as string]);
     }
-    const customerMap = new Map((customers ?? []).map((c) => [c.customer_id, c] as const));
-    const techMap = new Map((technicians ?? []).map((t) => [t.technician_id, t] as const));
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p] as const));
 
     return (usersData.users ?? [])
       .map((u) => ({
         userId: u.id,
         email: u.email ?? "",
-        fullName: customerMap.get(u.id)?.full_name ?? techMap.get(u.id)?.full_name ?? null,
-        phone: customerMap.get(u.id)?.phone_number ?? null,
+        fullName: profileMap.get(u.id)?.full_name ?? null,
+        phone: profileMap.get(u.id)?.phone ?? null,
         createdAt: u.created_at,
         roles: (roleMap.get(u.id) ?? []).sort(),
       }))
@@ -74,7 +72,7 @@ export const grantAdminRole = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: data.userId, role: "admin" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: data.userId, role: "ADMIN" }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -92,7 +90,7 @@ export const revokeAdminRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .delete()
       .eq("user_id", data.userId)
-      .eq("role", "admin");
+      .eq("role", "ADMIN");
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -20,7 +20,6 @@ export const Route = createFileRoute("/services/$slug")({
     }
     const title = `${loaderData.name} in Sri Lanka | Manorcraft`;
     const description =
-      loaderData.tagline ||
       `Book verified ${loaderData.name.toLowerCase()} professionals with Manorcraft.`;
     return {
       meta: [
@@ -81,7 +80,7 @@ function ServiceDetailPage() {
           </span>
           <h1 className="mt-3 font-display text-5xl font-light text-foreground">{service.name}</h1>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            {service.description || service.tagline}
+            {service.description}
           </p>
         </div>
         <Button asChild variant="brass" size="xl">
@@ -99,20 +98,6 @@ function ServiceDetailPage() {
         />
       </section>
 
-      {service.common_problems.length > 0 && (
-        <section className="mt-14">
-          <h2 className="font-display text-3xl font-light text-foreground">What we fix</h2>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {service.common_problems.map((problem) => (
-              <li key={problem} className="flex items-start gap-3 text-sm text-muted-foreground">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brass" />
-                {problem}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section className="mt-14">
         <h2 className="font-display text-3xl font-light text-foreground">Available professionals</h2>
         {service.available_professionals.length === 0 ? (
@@ -124,7 +109,7 @@ function ServiceDetailPage() {
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {service.available_professionals.map((tech) => (
               <li
-                key={tech.technician_id}
+                key={tech.profile_id}
                 className="flex items-center gap-3 rounded-sm border border-border bg-card p-5"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-full border border-brass/40 text-brass">
@@ -133,7 +118,7 @@ function ServiceDetailPage() {
                 <div>
                   <p className="text-sm text-foreground">{tech.full_name}</p>
                   <Badge variant="secondary" className="mt-1 text-[0.65rem]">
-                    {tech.current_status}
+                    {tech.specialization} · {tech.rating.toFixed(1)}★ · {tech.completed_jobs} jobs
                   </Badge>
                 </div>
               </li>
