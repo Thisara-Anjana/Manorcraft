@@ -5,23 +5,27 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePortalHome } from "@/lib/auth-routing";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/technician-login")({
   head: () => ({
     meta: [
-      { title: "Technician Login | Manorcraft Field Portal" },
+      { title: "Technician Login | Manorcraft Professional Portal" },
       {
         name: "description",
         content:
-          "Manorcraft field technicians sign in here to view assigned jobs and update job progress on the move.",
+          "Manorcraft professionals sign in here to accept jobs, update service progress and track earnings on the move.",
       },
-      { property: "og:title", content: "Technician Login | Manorcraft Field Portal" },
+      { property: "og:title", content: "Technician Login | Manorcraft Professional Portal" },
       {
         property: "og:description",
-        content: "Sign in to the Manorcraft technician portal to manage your assigned jobs.",
+        content: "Manage your jobs, serve customers and grow your business with Manorcraft.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,20 +34,28 @@ export const Route = createFileRoute("/technician-login")({
   component: TechnicianLogin,
 });
 
+const REMEMBER_KEY = "manorcraft:remembered-tech-email";
+
 const schema = z.object({
-  email: z.string().trim().email("Enter a valid email address."),
+  email: z.string().trim().email("Enter a valid email address.").max(255),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
 function TechnicianLogin() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/technician", replace: true });
+    const saved = window.localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      setForm((f) => ({ ...f, email: saved }));
+      setRemember(true);
+    }
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) navigate({ to: await resolvePortalHome(), replace: true });
     });
   }, [navigate]);
 
@@ -62,87 +74,112 @@ function TechnicianLogin() {
       email: form.email.trim(),
       password: form.password,
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error("Could not sign in", { description: error.message });
       return;
     }
-    navigate({ to: "/technician", replace: true });
+    if (remember) window.localStorage.setItem(REMEMBER_KEY, form.email.trim());
+    else window.localStorage.removeItem(REMEMBER_KEY);
+
+    const home = await resolvePortalHome();
+    setLoading(false);
+    if (home === "/dashboard") {
+      toast.info("This account isn't registered as a technician yet", {
+        description: "Taking you to your customer dashboard instead.",
+      });
+    }
+    navigate({ to: home, replace: true });
   };
 
   return (
-    <main className="surface-navy flex min-h-screen flex-col items-center justify-center px-6 py-16">
-      <Link to="/" className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-brass/70">
-          <span className="font-display text-lg text-brass">M</span>
-        </span>
-        <span className="font-display text-2xl uppercase tracking-[0.18em] text-primary-foreground">
-          Manorcraft
-        </span>
-      </Link>
+    <AuthLayout
+      eyebrow="Professional Portal"
+      asideTitle="Your workday, organised."
+      asideBody="Accept jobs, navigate to customers and update progress from the field — all from one screen built for speed."
+      asideFooter="Fair pay · Verified clients · Island-wide work"
+    >
+      <span className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.28em] text-muted-foreground">
+        <HardHat className="size-4 text-brass" /> Field Portal
+      </span>
+      <h1 className="mt-3 font-display text-4xl font-light text-foreground">Welcome, Professional</h1>
+      <p className="mt-3 text-sm text-muted-foreground">
+        Manage your jobs. Serve customers. Grow your business.
+      </p>
 
-      <div className="mt-10 w-full max-w-sm rounded-sm border border-brass/25 bg-background p-8">
-        <span className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.28em] text-muted-foreground">
-          <HardHat className="size-4 text-brass" /> Field Portal
-        </span>
-        <h1 className="mt-3 font-display text-3xl font-light text-foreground">Technician Login</h1>
-
-        <form onSubmit={submit} className="mt-8 space-y-5">
-          <div className="space-y-2">
-            <Label
-              htmlFor="tech-email"
-              className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-            >
-              Email
-            </Label>
-            <Input
-              id="tech-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              className="h-12 text-base"
-              value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="you@manorcraft.lk"
-            />
-            {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label
-              htmlFor="tech-password"
-              className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-            >
-              Password
-            </Label>
-            <Input
-              id="tech-password"
-              type="password"
-              autoComplete="current-password"
-              className="h-12 text-base"
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              placeholder="••••••••"
-            />
-            {errors["password"] && <p className="text-xs text-destructive">{errors["password"]}</p>}
-          </div>
-          <Button
-            type="submit"
-            variant="brass"
-            size="xl"
-            className="h-14 w-full text-base"
-            disabled={loading}
+      <form onSubmit={submit} className="mt-9 space-y-5">
+        <div className="space-y-2">
+          <Label
+            htmlFor="tech-email"
+            className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
           >
-            {loading && <Loader2 className="animate-spin" />} Enter Field Portal
-          </Button>
-        </form>
+            Email
+          </Label>
+          <Input
+            id="tech-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            className="h-12 text-base"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            placeholder="you@manorcraft.lk"
+          />
+          {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label
+            htmlFor="tech-password"
+            className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
+          >
+            Password
+          </Label>
+          <Input
+            id="tech-password"
+            type="password"
+            autoComplete="current-password"
+            className="h-12 text-base"
+            value={form.password}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            placeholder="••••••••"
+          />
+          {errors["password"] && <p className="text-xs text-destructive">{errors["password"]}</p>}
+        </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Customer instead?{" "}
-          <Link to="/auth" className="uppercase tracking-[0.14em] hover:text-brass">
-            Client login
-          </Link>
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            <Checkbox
+              checked={remember}
+              onCheckedChange={(v) => setRemember(v === true)}
+              aria-label="Remember me"
+            />
+            Remember me
+          </label>
+          <ForgotPasswordDialog defaultEmail={form.email} />
+        </div>
+
+        <Button
+          type="submit"
+          variant="brass"
+          size="xl"
+          className="h-14 w-full text-base"
+          disabled={loading}
+        >
+          {loading && <Loader2 className="animate-spin" />} Sign In
+        </Button>
+        <Button asChild variant="outlineBrass" size="xl" className="w-full">
+          <Link to="/for-professionals">Apply as a Technician</Link>
+        </Button>
+      </form>
+
+      <div className="mt-10 rounded-sm border border-border bg-secondary/40 p-5 text-center">
+        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+          Looking for home services?
         </p>
+        <Button asChild variant="ghost" className="mt-2 w-full">
+          <Link to="/auth">Customer Login</Link>
+        </Button>
       </div>
-    </main>
+    </AuthLayout>
   );
 }
