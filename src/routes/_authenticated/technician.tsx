@@ -197,7 +197,7 @@ function TechnicianPortal() {
                     key={job.ticket_id}
                     job={job}
                     pending={mutation.isPending && mutation.variables?.ticketId === job.ticket_id}
-                    onUpdate={(status) => mutation.mutate({ ticketId: job.ticket_id, status })}
+                    onAction={(action) => mutation.mutate({ ticketId: job.ticket_id, action })}
                   />
                 ))}
               </div>
@@ -209,16 +209,65 @@ function TechnicianPortal() {
   );
 }
 
+type JobAction = "accept" | "reject" | "On The Way" | "In Progress" | "Completed";
+
 function JobCard({
   job,
   pending,
-  onUpdate,
+  onAction,
 }: {
   job: Job;
   pending: boolean;
-  onUpdate: (status: "In Progress" | "Completed") => void;
+  onAction: (action: JobAction) => void;
 }) {
   const [showHistory, setShowHistory] = useState(false);
+  const [confirming, setConfirming] = useState<JobAction | null>(null);
+
+  const confirmCopy: Record<JobAction, { title: string; body: string; cta: string }> = {
+    accept: {
+      title: `Accept ${job.booking_code}?`,
+      body: "The customer will be told you're handling this job.",
+      cta: "Accept job",
+    },
+    reject: {
+      title: `Decline ${job.booking_code}?`,
+      body: "The job goes back to dispatch for reassignment.",
+      cta: "Decline job",
+    },
+    "On The Way": {
+      title: "Mark yourself on the way?",
+      body: "The customer will see that you're travelling to them.",
+      cta: "I'm on the way",
+    },
+    "In Progress": {
+      title: "Start this service?",
+      body: "This records the service start time on the booking timeline.",
+      cta: "Start service",
+    },
+    Completed: {
+      title: "Complete this service?",
+      body: "The customer will be able to review the visit once completed.",
+      cta: "Complete service",
+    },
+  };
+
+  const mapsHref =
+    job.latitude != null && job.longitude != null
+      ? `https://www.google.com/maps/search/?api=1&query=${job.latitude},${job.longitude}`
+      : job.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${job.address}, ${job.district}, Sri Lanka`)}`
+        : null;
+
+  const bigButton = (action: JobAction, icon: React.ReactNode, label: string) => (
+    <Button
+      variant="brass"
+      className="h-14 w-full text-base active:scale-[0.98]"
+      disabled={pending}
+      onClick={() => setConfirming(action)}
+    >
+      {pending ? <Loader2 className="animate-spin" /> : icon} {label}
+    </Button>
+  );
 
   return (
     <article className="overflow-hidden rounded-sm border border-border/70 bg-background shadow-sm">
@@ -226,16 +275,26 @@ function JobCard({
         <div>
           <p className="font-display text-xl leading-tight text-foreground">{job.job_category}</p>
           <p className="mt-1 text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
-            #{job.ticket_id.slice(0, 8)}
+            {job.booking_code}
           </p>
         </div>
-        <Badge className={statusStyles[job.job_status] ?? ""}>{job.job_status}</Badge>
+        <Badge className={STATUS_BADGE[job.job_status] ?? ""}>
+          {STATUS_LABEL[job.job_status] ?? job.job_status}
+        </Badge>
       </div>
 
       <div className="space-y-3 px-5 py-5 text-sm">
         <p className="flex items-center gap-2 text-foreground">
           <User className="size-4 shrink-0 text-brass" /> {job.customer_name}
         </p>
+        {job.customer_phone && (
+          <a
+            href={`tel:${job.customer_phone}`}
+            className="flex min-h-11 items-center gap-2 text-foreground underline-offset-4 hover:underline"
+          >
+            <Phone className="size-4 shrink-0 text-brass" /> {job.customer_phone}
+          </a>
+        )}
         <p className="flex items-start gap-2 text-foreground">
           <MapPin className="size-4 shrink-0 text-brass" />
           <span>
@@ -251,35 +310,48 @@ function JobCard({
           </p>
         )}
         <p className="leading-relaxed text-muted-foreground">{job.description}</p>
+        {mapsHref && (
+          <a
+            href={mapsHref}
+            target="_blank"
+            rel="noreferrer"
+            className="flex min-h-11 items-center gap-2 text-xs uppercase tracking-[0.16em] text-brass"
+          >
+            <Navigation className="size-4" /> Navigate to customer
+          </a>
+        )}
       </div>
 
-      <div className="px-5 pb-5">
+      <div className="space-y-3 px-5 pb-5">
         {job.job_status === "Assigned" && (
-          <Button
-            variant="brass"
-            className="h-14 w-full text-base active:scale-[0.98]"
-            disabled={pending}
-            onClick={() => onUpdate("In Progress")}
-          >
-            {pending ? <Loader2 className="animate-spin" /> : <PlayCircle />} Start Job
-          </Button>
+          <>
+            {bigButton("accept", <CheckCircle2 />, "Accept Job")}
+            <Button
+              variant="outline"
+              className="h-12 w-full active:scale-[0.98]"
+              disabled={pending}
+              onClick={() => setConfirming("reject")}
+            >
+              <XCircle /> Decline
+            </Button>
+          </>
         )}
-        {job.job_status === "In Progress" && (
-          <Button
-            variant="brass"
-            className="h-14 w-full text-base active:scale-[0.98]"
-            disabled={pending}
-            onClick={() => onUpdate("Completed")}
-          >
-            {pending ? <Loader2 className="animate-spin" /> : <CheckCircle2 />} Mark Completed
-          </Button>
-        )}
+        {job.job_status === "Accepted" && bigButton("On The Way", <Navigation />, "On My Way")}
+        {job.job_status === "On The Way" &&
+          bigButton("In Progress", <PlayCircle />, "Start Service")}
+        {job.job_status === "In Progress" &&
+          bigButton("Completed", <CheckCircle2 />, "Complete Service")}
         {job.job_status === "Completed" && (
           <p className="flex items-center justify-center gap-2 rounded-sm bg-emerald-600/10 py-4 text-sm text-emerald-700">
             <CheckCircle2 className="size-4" /> Completed
           </p>
         )}
-        {job.job_status === "Pending" && (
+        {job.job_status === "Cancelled" && (
+          <p className="flex items-center justify-center gap-2 rounded-sm bg-destructive/10 py-4 text-sm text-destructive">
+            <XCircle className="size-4" /> Cancelled by customer
+          </p>
+        )}
+        {["Pending", "Confirmed"].includes(job.job_status) && (
           <p className="flex items-center justify-center gap-2 rounded-sm bg-muted py-4 text-sm text-muted-foreground">
             <Clock className="size-4" /> Awaiting dispatch
           </p>
@@ -288,17 +360,42 @@ function JobCard({
         <button
           type="button"
           onClick={() => setShowHistory((v) => !v)}
-          className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-border/70 text-xs uppercase tracking-[0.18em] text-muted-foreground active:scale-[0.98]"
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-border/70 text-xs uppercase tracking-[0.18em] text-muted-foreground active:scale-[0.98]"
         >
           <History className="size-4 text-brass" />
           {showHistory ? "Hide history" : "Status history"}
         </button>
         {showHistory && (
-          <div className="mt-4 rounded-sm bg-muted/40 p-4">
+          <div className="rounded-sm bg-muted/40 p-4">
             <TicketHistory ticketId={job.ticket_id} />
           </div>
         )}
       </div>
+
+      <AlertDialog open={confirming !== null} onOpenChange={(o) => !o && setConfirming(null)}>
+        <AlertDialogContent>
+          {confirming && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{confirmCopy[confirming].title}</AlertDialogTitle>
+                <AlertDialogDescription>{confirmCopy[confirming].body}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Back</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    onAction(confirming);
+                    setConfirming(null);
+                  }}
+                >
+                  {confirmCopy[confirming].cta}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
+
   );
 }
