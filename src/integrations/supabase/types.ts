@@ -152,13 +152,6 @@ export type Database = {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
-            referencedRelation: "service_reviews"
-            referencedColumns: ["service_id"]
-          },
-          {
-            foreignKeyName: "bookings_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
             referencedRelation: "services"
             referencedColumns: ["id"]
           },
@@ -348,6 +341,8 @@ export type Database = {
           customer_id: string
           id: string
           rating: number
+          reviewer_name: string
+          service_id: string | null
           technician_id: string | null
           updated_at: string
         }
@@ -358,6 +353,8 @@ export type Database = {
           customer_id: string
           id?: string
           rating: number
+          reviewer_name?: string
+          service_id?: string | null
           technician_id?: string | null
           updated_at?: string
         }
@@ -368,6 +365,8 @@ export type Database = {
           customer_id?: string
           id?: string
           rating?: number
+          reviewer_name?: string
+          service_id?: string | null
           technician_id?: string | null
           updated_at?: string
         }
@@ -384,6 +383,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
           {
@@ -488,6 +494,7 @@ export type Database = {
           completed_jobs: number
           created_at: string
           experience_years: number
+          full_name: string
           profile_id: string
           rating: number
           service_radius_km: number
@@ -501,6 +508,7 @@ export type Database = {
           completed_jobs?: number
           created_at?: string
           experience_years?: number
+          full_name?: string
           profile_id: string
           rating?: number
           service_radius_km?: number
@@ -514,6 +522,7 @@ export type Database = {
           completed_jobs?: number
           created_at?: string
           experience_years?: number
+          full_name?: string
           profile_id?: string
           rating?: number
           service_radius_km?: number
@@ -558,12 +567,29 @@ export type Database = {
         Row: {
           availability: boolean | null
           completed_jobs: number | null
-          district_name: string | null
           experience_years: number | null
           full_name: string | null
           profile_id: string | null
           rating: number | null
           specialization: string | null
+        }
+        Insert: {
+          availability?: boolean | null
+          completed_jobs?: number | null
+          experience_years?: number | null
+          full_name?: string | null
+          profile_id?: string | null
+          rating?: number | null
+          specialization?: string | null
+        }
+        Update: {
+          availability?: boolean | null
+          completed_jobs?: number | null
+          experience_years?: number | null
+          full_name?: string | null
+          profile_id?: string | null
+          rating?: number | null
+          specialization?: string | null
         }
         Relationships: [
           {
@@ -585,7 +611,15 @@ export type Database = {
           service_id: string | null
           service_slug: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
