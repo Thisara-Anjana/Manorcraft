@@ -89,10 +89,13 @@ function AdminLogin() {
       <span className="flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.28em] text-muted-foreground">
         <Lock className="size-4 text-brass" /> Administration
       </span>
-      <h1 className="mt-3 font-display text-4xl font-light text-foreground">Secure sign in</h1>
+      <h1 className="mt-3 font-display text-3xl font-medium tracking-tight text-foreground">
+        Manorcraft Admin Portal
+      </h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Access is verified against your Manorcraft administrator role.
+        Manage operations, professionals and customers.
       </p>
+
 
       <form onSubmit={submit} className="mt-9 space-y-5">
         <div className="space-y-2">
