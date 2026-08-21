@@ -13,17 +13,9 @@ export async function resolvePortalHome(): Promise<PortalHome> {
   } = await supabase.auth.getUser();
   if (!user) return "/dashboard";
 
-  const [{ data: roles }, { data: tech }] = await Promise.all([
-    supabase.from("user_roles").select("role").eq("user_id", user.id),
-    supabase
-      .from("technicians")
-      .select("technician_id")
-      .eq("technician_id", user.id)
-      .maybeSingle(),
-  ]);
-
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
   const list = (roles ?? []).map((r) => r.role as string);
-  if (list.includes("admin")) return "/admin";
-  if (list.includes("technician") || tech) return "/technician";
+  if (list.includes("ADMIN")) return "/admin";
+  if (list.includes("TECHNICIAN")) return "/technician";
   return "/dashboard";
 }
