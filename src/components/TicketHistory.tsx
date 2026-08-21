@@ -2,23 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { History } from "lucide-react";
 
-import { getTicketHistory, type TicketHistoryEntry } from "@/lib/history.functions";
-
+import { getBookingHistory, type BookingHistoryEntry } from "@/lib/history.functions";
 import { STATUS_DOT, STATUS_LABEL } from "@/lib/booking-status";
 
 function formatWhen(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
-/** Read-only audit timeline of every job_status change on a ticket. */
-export function TicketHistory({ ticketId }: { ticketId: string }) {
-  const fetchHistory = useServerFn(getTicketHistory);
+/** Read-only audit timeline of every status change on a booking. */
+export function TicketHistory({ bookingId }: { bookingId: string }) {
+  const fetchHistory = useServerFn(getBookingHistory);
   const history = useQuery({
-    queryKey: ["ticket-history", ticketId],
-    queryFn: () => fetchHistory({ data: { ticketId } }) as Promise<TicketHistoryEntry[]>,
+    queryKey: ["booking-history", bookingId],
+    queryFn: () => fetchHistory({ data: { bookingId } }) as Promise<BookingHistoryEntry[]>,
   });
 
   if (history.isPending) {
@@ -38,20 +34,19 @@ export function TicketHistory({ ticketId }: { ticketId: string }) {
   return (
     <ol className="relative max-h-80 space-y-5 overflow-y-auto border-l border-border/70 pl-5">
       {history.data.map((entry) => (
-        <li key={entry.history_id} className="relative">
+        <li key={entry.id} className="relative">
           <span
             className={`absolute -left-[1.42rem] top-1.5 size-2.5 rounded-full ring-2 ring-background ${
-              STATUS_DOT[entry.new_status] ?? "bg-muted-foreground"
+              STATUS_DOT[entry.status] ?? "bg-muted-foreground"
             }`}
           />
           <p className="text-sm font-medium text-foreground">
-            {entry.old_status
-              ? `${STATUS_LABEL[entry.old_status] ?? entry.old_status} → ${STATUS_LABEL[entry.new_status] ?? entry.new_status}`
-              : `Created as ${STATUS_LABEL[entry.new_status] ?? entry.new_status}`}
+            {STATUS_LABEL[entry.status] ?? entry.status}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {formatWhen(entry.created_at)} · {entry.actor_name}
           </p>
+          {entry.note && <p className="mt-1 text-xs text-muted-foreground">{entry.note}</p>}
         </li>
       ))}
     </ol>
