@@ -44,21 +44,18 @@ export const Route = createFileRoute("/_authenticated/technician")({
 
 type Job = {
   ticket_id: string;
+  booking_code: string;
   customer_name: string;
+  customer_phone: string | null;
   district: string;
   address: string | null;
+  latitude: number | null;
+  longitude: number | null;
   job_category: string;
   job_status: string;
   description: string;
   scheduled_date: string | null;
   time_slot: string | null;
-};
-
-const statusStyles: Record<string, string> = {
-  Pending: "border-transparent bg-muted text-muted-foreground",
-  Assigned: "border-brass/50 bg-brass/15 text-accent-foreground",
-  "In Progress": "border-transparent bg-primary text-primary-foreground",
-  Completed: "border-transparent bg-emerald-600/15 text-emerald-700",
 };
 
 function TechnicianPortal() {
@@ -67,6 +64,8 @@ function TechnicianPortal() {
   const check = useServerFn(checkIsTechnician);
   const fetchJobs = useServerFn(listMyJobs);
   const setStatus = useServerFn(updateJobStatus);
+  const accept = useServerFn(acceptJob);
+  const reject = useServerFn(rejectJob);
 
   const access = useQuery({ queryKey: ["is-technician"], queryFn: () => check({}) });
   const jobs = useQuery({
@@ -75,13 +74,30 @@ function TechnicianPortal() {
     enabled: !!access.data?.isTechnician,
   });
 
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
+    queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+  };
+
   const mutation = useMutation({
-    mutationFn: (vars: { ticketId: string; status: "In Progress" | "Completed" }) =>
-      setStatus({ data: vars }),
+    mutationFn: (vars: {
+      ticketId: string;
+      action: "accept" | "reject" | "On The Way" | "In Progress" | "Completed";
+    }) => {
+      if (vars.action === "accept") return accept({ data: { ticketId: vars.ticketId } });
+      if (vars.action === "reject") return reject({ data: { ticketId: vars.ticketId } });
+      return setStatus({ data: { ticketId: vars.ticketId, status: vars.action } });
+    },
     onSuccess: (_res, vars) => {
-      toast.success(vars.status === "Completed" ? "Job completed" : "Job started");
-      queryClient.invalidateQueries({ queryKey: ["my-jobs"] });
-      queryClient.invalidateQueries({ queryKey: ["ticket-history"] });
+      const messages: Record<string, string> = {
+        accept: "Job accepted",
+        reject: "Job returned to dispatch",
+        "On The Way": "Customer notified you're on the way",
+        "In Progress": "Service started",
+        Completed: "Job completed",
+      };
+      toast.success(messages[vars.action] ?? "Job updated");
+      refresh();
     },
     onError: (error: Error) => toast.error("Could not update job", { description: error.message }),
   });
@@ -103,8 +119,9 @@ function TechnicianPortal() {
   };
 
   const list = jobs.data ?? [];
-  const active = list.filter((j) => j.job_status !== "Completed");
-  const done = list.filter((j) => j.job_status === "Completed");
+  const active = list.filter((j) => !["Completed", "Cancelled"].includes(j.job_status));
+  const done = list.filter((j) => ["Completed", "Cancelled"].includes(j.job_status));
+
 
   return (
     <div className="min-h-screen bg-muted/30 pb-16">
