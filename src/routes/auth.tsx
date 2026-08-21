@@ -239,10 +239,10 @@ function Field({
   id: string;
   label: string;
   value: string;
-  error?: string;
-  placeholder?: string;
-  type?: string;
-  autoComplete?: string;
+  error?: string | undefined;
+  placeholder?: string | undefined;
+  type?: string | undefined;
+  autoComplete?: string | undefined;
   onChange: (value: string) => void;
 }) {
   return (

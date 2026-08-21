@@ -112,13 +112,13 @@ export async function fetchServiceDetail(slug: string): Promise<ServiceDetail | 
     supabase
       .from("reviews")
       .select("review_id, rating, comment, created_at, job_tickets!inner(job_category)")
-      .eq("job_tickets.job_category", summary.category)
+      .eq("job_tickets.job_category", summary.category as never)
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
       .from("technicians")
       .select("technician_id, full_name, current_status")
-      .eq("primary_skill", summary.category)
+      .eq("primary_skill", summary.category as never)
       .limit(6),
   ]);
 
