@@ -6,7 +6,9 @@ import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
 import { resolvePortalHome } from "@/lib/auth-routing";
+import { friendlyAuthError } from "@/lib/auth-errors";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { DemoAccess } from "@/components/auth/DemoAccess";
 import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
