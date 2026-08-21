@@ -5,7 +5,11 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePortalHome } from "@/lib/auth-routing";
+import { AuthLayout } from "@/components/auth/AuthLayout";
+import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,26 +17,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign In or Create Account | Manorcraft" },
+      { title: "Customer Login | Manorcraft Home Services" },
       {
         name: "description",
         content:
-          "Access your Manorcraft account to book verified plumbing, electrical, masonry and AC repair experts across Sri Lanka.",
+          "Sign in to your Manorcraft customer account to book verified plumbing, electrical, masonry and AC repair professionals across Sri Lanka.",
       },
-      { property: "og:title", content: "Sign In or Create Account | Manorcraft" },
+      { property: "og:title", content: "Customer Login | Manorcraft Home Services" },
       {
         property: "og:description",
-        content: "Sign in to schedule and track premium home maintenance with Manorcraft.",
+        content: "Premium home services, whenever you need them. Sign in or create an account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: AuthPage,
+  component: CustomerAuthPage,
 });
 
+const REMEMBER_KEY = "manorcraft:remembered-email";
+
 const signInSchema = z.object({
-  email: z.string().trim().email("Enter a valid email address."),
+  email: z.string().trim().email("Enter a valid email address.").max(255),
   password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
@@ -41,15 +47,21 @@ const signUpSchema = signInSchema.extend({
   phone: z.string().trim().min(7, "Please enter a valid phone number.").max(20),
 });
 
-function AuthPage() {
+function CustomerAuthPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({ email: "", password: "", fullName: "", phone: "" });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/book", replace: true });
+    const saved = window.localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      setForm((f) => ({ ...f, email: saved }));
+      setRemember(true);
+    }
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) navigate({ to: await resolvePortalHome(), replace: true });
     });
   }, [navigate]);
 
@@ -61,9 +73,16 @@ function AuthPage() {
   const collect = (result: z.SafeParseReturnType<unknown, unknown>) => {
     if (result.success) return true;
     const next: Record<string, string> = {};
-    for (const issue of result.error.issues) next[String(issue.path[0])] = issue.message;
+    for (const issue of (result as z.SafeParseError<unknown>).error.issues) {
+      next[String(issue.path[0])] = issue.message;
+    }
     setErrors(next);
     return false;
+  };
+
+  const persistEmail = () => {
+    if (remember) window.localStorage.setItem(REMEMBER_KEY, form.email.trim());
+    else window.localStorage.removeItem(REMEMBER_KEY);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -74,13 +93,16 @@ function AuthPage() {
       email: form.email.trim(),
       password: form.password,
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error("Could not sign in", { description: error.message });
       return;
     }
+    persistEmail();
+    const home = await resolvePortalHome();
+    setLoading(false);
     toast.success("Welcome back to Manorcraft");
-    navigate({ to: "/book", replace: true });
+    navigate({ to: home, replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -100,9 +122,10 @@ function AuthPage() {
       toast.error("Could not create account", { description: error.message });
       return;
     }
+    persistEmail();
     if (data.session) {
       toast.success("Account created");
-      navigate({ to: "/book", replace: true });
+      navigate({ to: "/dashboard", replace: true });
     } else {
       toast.success("Check your email", {
         description: "Confirm your address to activate your Manorcraft account.",
@@ -111,124 +134,132 @@ function AuthPage() {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <aside className="surface-navy relative hidden flex-col justify-between p-14 lg:flex">
-        <Link to="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-brass/70">
-            <span className="font-display text-lg text-brass">M</span>
-          </span>
-          <span className="font-display text-2xl uppercase tracking-[0.18em] text-primary-foreground">
-            Manorcraft
-          </span>
-        </Link>
-
-        <div>
-          <span className="text-[0.7rem] uppercase tracking-[0.32em] text-brass">
-            Members Entrance
-          </span>
-          <h2 className="mt-6 max-w-md font-display text-5xl font-light leading-tight text-primary-foreground">
-            Craftsmanship, reserved for your household.
-          </h2>
-          <p className="mt-6 max-w-sm text-sm leading-relaxed text-primary-foreground/70">
-            Sign in to schedule vetted plumbing, electrical, masonry and AC specialists across
-            Colombo, Kandy and Anuradhapura.
-          </p>
-        </div>
-
-        <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-primary-foreground/60">
+    <AuthLayout
+      eyebrow="Members Entrance"
+      asideTitle="Craftsmanship, reserved for your household."
+      asideBody="Schedule vetted plumbing, electrical, masonry and AC specialists across Colombo, Kandy and Anuradhapura."
+      asideFooter={
+        <span className="flex items-center gap-2">
           <ShieldCheck className="size-4 text-brass" /> Insured · Vetted · Discreet
+        </span>
+      }
+    >
+      <div>
+        <span className="text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
+          Customer Account
+        </span>
+        <h1 className="mt-3 font-display text-4xl font-light text-foreground">
+          Welcome to Manorcraft
+        </h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Premium home services, whenever you need them.
         </p>
-      </aside>
+      </div>
 
-      <main className="flex items-center justify-center bg-background px-6 py-16">
-        <div className="w-full max-w-md">
-          <div className="text-center lg:text-left">
-            <span className="text-[0.7rem] uppercase tracking-[0.32em] text-muted-foreground">
-              Account
-            </span>
-            <h1 className="mt-3 font-display text-4xl font-light text-foreground">
-              Login &amp; Sign Up
-            </h1>
-          </div>
+      <Tabs defaultValue="signin" className="mt-9">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="signin">Sign In</TabsTrigger>
+          <TabsTrigger value="signup">Create Account</TabsTrigger>
+        </TabsList>
 
-          <Tabs defaultValue="signin" className="mt-10">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Create Account</TabsTrigger>
-            </TabsList>
+        <TabsContent value="signin">
+          <form onSubmit={handleSignIn} className="space-y-5 pt-6">
+            <EmailPassword form={form} errors={errors} set={set} />
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                <Checkbox
+                  checked={remember}
+                  onCheckedChange={(v) => setRemember(v === true)}
+                  aria-label="Remember me"
+                />
+                Remember me
+              </label>
+              <ForgotPasswordDialog defaultEmail={form.email} />
+            </div>
+            <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="animate-spin" />} Sign In
+            </Button>
+          </form>
+        </TabsContent>
 
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-5 pt-6">
-                <EmailPassword form={form} errors={errors} set={set} />
-                <Button
-                  type="submit"
-                  variant="brass"
-                  size="xl"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading && <Loader2 className="animate-spin" />} Sign In
-                </Button>
-              </form>
-            </TabsContent>
+        <TabsContent value="signup">
+          <form onSubmit={handleSignUp} className="space-y-5 pt-6">
+            <Field
+              id="fullName"
+              label="Full name"
+              value={form.fullName}
+              error={errors["fullName"]}
+              placeholder="Thisara Anjana"
+              onChange={(v) => set("fullName", v)}
+            />
+            <Field
+              id="phone"
+              label="Phone number"
+              value={form.phone}
+              error={errors["phone"]}
+              placeholder="+94 77 123 4567"
+              onChange={(v) => set("phone", v)}
+            />
+            <EmailPassword form={form} errors={errors} set={set} />
+            <Button type="submit" variant="brass" size="xl" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="animate-spin" />} Create Customer Account
+            </Button>
+          </form>
+        </TabsContent>
+      </Tabs>
 
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-5 pt-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="fullName"
-                    className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-                  >
-                    Full name
-                  </Label>
-                  <Input
-                    id="fullName"
-                    className="h-11"
-                    value={form.fullName}
-                    onChange={(e) => set("fullName", e.target.value)}
-                    placeholder="Thisara Anjana"
-                  />
-                  {errors["fullName"] && (
-                    <p className="text-xs text-destructive">{errors["fullName"]}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="phone"
-                    className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-                  >
-                    Phone number
-                  </Label>
-                  <Input
-                    id="phone"
-                    className="h-11"
-                    value={form.phone}
-                    onChange={(e) => set("phone", e.target.value)}
-                    placeholder="+94 77 123 4567"
-                  />
-                  {errors["phone"] && <p className="text-xs text-destructive">{errors["phone"]}</p>}
-                </div>
-                <EmailPassword form={form} errors={errors} set={set} />
-                <Button
-                  type="submit"
-                  variant="brass"
-                  size="xl"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading && <Loader2 className="animate-spin" />} Create Account
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+      <div className="mt-10 rounded-sm border border-border bg-secondary/40 p-5 text-center">
+        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+          Are you a technician?
+        </p>
+        <Button asChild variant="outlineBrass" className="mt-3 w-full">
+          <Link to="/technician-login">Technician Login</Link>
+        </Button>
+      </div>
 
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            <Link to="/" className="uppercase tracking-[0.16em] hover:text-brass">
-              Return to Manorcraft
-            </Link>
-          </p>
-        </div>
-      </main>
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        <Link to="/" className="uppercase tracking-[0.16em] hover:text-brass">
+          Return to Manorcraft
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
+
+function Field({
+  id,
+  label,
+  value,
+  error,
+  placeholder,
+  type = "text",
+  autoComplete,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  error?: string;
+  placeholder?: string;
+  type?: string;
+  autoComplete?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        type={type}
+        autoComplete={autoComplete}
+        className="h-11"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
@@ -244,41 +275,26 @@ function EmailPassword({
 }) {
   return (
     <>
-      <div className="space-y-2">
-        <Label
-          htmlFor="email"
-          className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-        >
-          Email
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          className="h-11"
-          value={form.email}
-          onChange={(e) => set("email", e.target.value)}
-          placeholder="you@example.com"
-        />
-        {errors["email"] && <p className="text-xs text-destructive">{errors["email"]}</p>}
-      </div>
-      <div className="space-y-2">
-        <Label
-          htmlFor="password"
-          className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
-        >
-          Password
-        </Label>
-        <Input
-          id="password"
-          type="password"
-          className="h-11"
-          value={form.password}
-          onChange={(e) => set("password", e.target.value)}
-          placeholder="••••••••"
-        />
-        {errors["password"] && <p className="text-xs text-destructive">{errors["password"]}</p>}
-      </div>
+      <Field
+        id="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        value={form.email}
+        error={errors["email"]}
+        placeholder="you@example.com"
+        onChange={(v) => set("email", v)}
+      />
+      <Field
+        id="password"
+        label="Password"
+        type="password"
+        autoComplete="current-password"
+        value={form.password}
+        error={errors["password"]}
+        placeholder="••••••••"
+        onChange={(v) => set("password", v)}
+      />
     </>
   );
 }

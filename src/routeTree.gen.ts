@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as GetStartedRouteImport } from './routes/get-started'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -37,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GetStartedRoute = GetStartedRouteImport.update({
+  id: '/get-started',
+  path: '/get-started',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -107,6 +113,7 @@ const AuthenticatedAdminTechniciansRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/book': typeof AuthenticatedBookRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/get-started'
     | '/reset-password'
     | '/technician-login'
     | '/admin'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/get-started'
     | '/reset-password'
     | '/technician-login'
     | '/book'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/get-started'
     | '/reset-password'
     | '/technician-login'
     | '/_authenticated/admin'
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  GetStartedRoute: typeof GetStartedRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TechnicianLoginRoute: typeof TechnicianLoginRoute
 }
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/get-started': {
+      id: '/get-started'
+      path: '/get-started'
+      fullPath: '/get-started'
+      preLoaderRoute: typeof GetStartedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -364,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  GetStartedRoute: GetStartedRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TechnicianLoginRoute: TechnicianLoginRoute,
 }
