@@ -4,13 +4,13 @@ import { Menu, X } from "lucide-react";
 
 import { useBrandLogo } from "@/hooks/useBrandLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { resolvePortalHome, type PortalHome } from "@/lib/auth-routing";
 
 const routedLinks = [
   { label: "Home", to: "/" as const },
+  { label: "Services", to: "/services" as const },
   { label: "Book a Service", to: "/book" as const },
-  { label: "My Bookings", to: "/dashboard" as const },
-  { label: "Admin", to: "/admin" as const },
-  { label: "Technician", to: "/technician" as const },
+  { label: "For Professionals", to: "/for-professionals" as const },
 ];
 
 const linkClass =
@@ -19,14 +19,19 @@ const linkClass =
 export function SiteNav({ solid = false }: { solid?: boolean }) {
   const [open, setOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [home, setHome] = useState<PortalHome>("/dashboard");
   const logo = useBrandLogo();
   const navigate = useNavigate();
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const sync = async (hasSession: boolean) => {
+      setSignedIn(hasSession);
+      if (hasSession) setHome(await resolvePortalHome());
+    };
+    supabase.auth.getSession().then(({ data }) => void sync(!!data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSignedIn(!!session);
+      void sync(!!session);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -34,16 +39,21 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     router.invalidate();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/", replace: true });
   };
 
-  const authLink = signedIn ? (
-    <button type="button" onClick={signOut} className={linkClass}>
-      Sign Out
-    </button>
+  const authLinks = signedIn ? (
+    <>
+      <Link to={home} className={linkClass} activeProps={{ className: "text-brass" }}>
+        My Portal
+      </Link>
+      <button type="button" onClick={signOut} className={linkClass}>
+        Sign Out
+      </button>
+    </>
   ) : (
-    <Link to="/auth" className={linkClass} activeProps={{ className: "text-brass" }}>
-      Login / Sign Up
+    <Link to="/get-started" className={linkClass} activeProps={{ className: "text-brass" }}>
+      Sign In
     </Link>
   );
 
@@ -76,13 +86,13 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
                 to={link.to}
                 className={linkClass}
                 activeProps={{ className: "text-brass" }}
-                activeOptions={{ exact: true }}
+                activeOptions={{ exact: link.to === "/" }}
               >
                 {link.label}
               </Link>
             </li>
           ))}
-          <li>{authLink}</li>
+          <li className="flex items-center gap-6">{authLinks}</li>
         </ul>
 
         <button
@@ -104,7 +114,7 @@ export function SiteNav({ solid = false }: { solid?: boolean }) {
               </Link>
             </li>
           ))}
-          <li>{authLink}</li>
+          <li className="flex flex-col items-start gap-4">{authLinks}</li>
         </ul>
       )}
     </header>

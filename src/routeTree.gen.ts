@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ForProfessionalsRouteImport } from './routes/for-professionals'
 import { Route as GetStartedRouteImport } from './routes/get-started'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TechnicianLoginRouteImport } from './routes/technician-login'
@@ -46,6 +47,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForProfessionalsRoute = ForProfessionalsRouteImport.update({
+  id: '/for-professionals',
+  path: '/for-professionals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GetStartedRoute = GetStartedRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin-login': typeof AdminLoginRoute
   '/auth': typeof AuthRoute
+  '/for-professionals': typeof ForProfessionalsRoute
   '/get-started': typeof GetStartedRoute
   '/reset-password': typeof ResetPasswordRoute
   '/technician-login': typeof TechnicianLoginRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/auth'
+    | '/for-professionals'
     | '/get-started'
     | '/reset-password'
     | '/technician-login'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/auth'
+    | '/for-professionals'
     | '/get-started'
     | '/reset-password'
     | '/technician-login'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin-login'
     | '/auth'
+    | '/for-professionals'
     | '/get-started'
     | '/reset-password'
     | '/technician-login'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
   AuthRoute: typeof AuthRoute
+  ForProfessionalsRoute: typeof ForProfessionalsRoute
   GetStartedRoute: typeof GetStartedRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TechnicianLoginRoute: typeof TechnicianLoginRoute
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-professionals': {
+      id: '/for-professionals'
+      path: '/for-professionals'
+      fullPath: '/for-professionals'
+      preLoaderRoute: typeof ForProfessionalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/get-started': {
@@ -445,6 +465,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
   AuthRoute: AuthRoute,
+  ForProfessionalsRoute: ForProfessionalsRoute,
   GetStartedRoute: GetStartedRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TechnicianLoginRoute: TechnicianLoginRoute,
